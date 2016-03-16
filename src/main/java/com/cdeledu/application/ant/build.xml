@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project default="all" basedir=".">
+
+	<!-- properties属性配置文件 -->
+	<property file="build.properties" />
+
+	<!-- tstamp生成日期时间信息(依赖机器设置语言环境，中文环境下日期信息包含中文) -->
+	<tstamp>
+		<format property="build.date" pattern="EEEE, d MMMM yyyy" />
+		<format property="build.time" pattern="hh:mm a" />
+	</tstamp>
+
+	<!-- compile依赖classpath -->
+	<path id="classpath.compile">
+		<fileset dir="${dir.lib}" includes="*.jar" />
+		<fileset dir="${jodconverter.lib}" includes="*.jar" />
+	</path>
+
+	<!-- 初始任务 -->
+	<target name="init">
+		<mkdir dir="${dir.classes}" />
+		<echo message="Make dir '${dir.classes}' Success." />
+	</target>
+
+
+	<!-- 清理任务 -->
+	<target name="clean">
+		<delete dir="${dir.classes}" />
+		<echo message="Delete dir '${dir.classes}' Success." />
+	</target>
+
+	<!-- 全部任务 -->
+	<target name="all" depends="clean" />
+
+</project>

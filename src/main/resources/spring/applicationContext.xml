@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.1.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd">
+
+<!-- 建立数据源 -->
+	<import resource="DB.xml" />
+
+	<!-- 打开Spring的Annotation支持 -->
+	<context:annotation-config />
+
+	<!-- 自动扫描的包名 -->
+	<context:component-scan base-package="com.cdeledu" />
+
+	<!-- 配置JDBC模板 -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- ====================================================================== 
+		springmvc ibatis (begin) -->
+	<!-- 配置SqlMapClient对象 -->
+	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation" value="" />
+		<property name="dataSource" value="dataSource" />
+	</bean>
+
+	<!--根据sqlMapClien创建一个SqlMapClient模版类 -->
+	<bean id="sqlMapClientTemplate" class="org.springframework.orm.ibatis.SqlMapClientTemplate">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<!-- ====================================================================== 
+		springmvc ibatis (end) -->
+
+
+
+	<!-- ====================================================================== 
+		Spring Hibernate(begin) -->
+	<import resource="spring-hibernate.xml" />
+	<!-- ====================================================================== 
+		Spring Hibernate(end) -->
+
+
+
+	<!-- ====================================================================== 
+		JDBC 事务管理 (begin) -->
+	<!-- 声明式事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- ====================================================================== 
+		JDBC 事务管理 (end) -->
+
+
+	<!-- 用注解来实现事务管理(配置事务规则) -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<!-- ====================================================================== 
+		上传文件配置 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver"
+		p:defaultEncoding="UTF-8">
+		<!-- 设置上传文件时的临时目录，默认是Servlet容器的临时目录 -->
+		<!-- <property name="uploadTempDir" value="" /> -->
+		<!-- 设置允许上传的最大文件大小,以字节为单位计算,当设为-1时表示无限制.默认是-1.注意maxUploadSize属性的限制不是针对单个文件，而是所有文件的容量之和 -->
+		<property name="maxUploadSize" value="104857600" />
+		<!-- 设置在文件上传时允许写到内存中的最大值,以字节为单位计算.默认是10240 -->
+		<property name="maxInMemorySize" value="10240" />
+	</bean>
+
+	<!-- 异常处理类:系统错误转发配置[并记录错误日志] -->
+	<bean id="exception"
+		class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<!-- 定义默认的异常处理页面，当该异常类型的注册时使用 -->
+		<!-- <property name="defaultErrorView" value="error"></property> -->
+		<!-- 定义异常处理页面用来获取异常信息的变量名，默认名为exception -->
+		<!-- <property name="exceptionAttribute" value="ex"></property> -->
+		<!-- 定义需要特殊处理的异常，用类名或完全路径名作为key，异常也页名作为值 -->
+		<property name="exceptionMappings">
+			<props>
+				<!-- 数据库错误(dbError.jsp) -->
+				<!-- <prop key="java.sql.SQLException">showDBError</prop> -->
+				<!-- 参数绑定错误(如：必须参数没传递)(bizError.jsp) -->
+				<!-- <proo key="org.springframework.web.bind.ServletRequestBindingException">bizError</proo> -->
+				<!-- <prop key="java.lang.RuntimeException">showError</prop> -->
+				<!-- 其他错误为'未定义错误'(unknowError.jsp) -->
+				<!-- <prop key="java.lang.Exception">unknowError</prop> -->
+				<!-- 这里还可以继续扩展对不同异常类型的处理 -->
+			</props>
+		</property>
+	</bean>
+
+	<!-- 国际化的消息资源文件 -->
+	<bean id="messageSource"
+		class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<!-- 国际化信息所在的文件名 -->
+		<property name="basenames">
+			<list>
+				<!-- 在web环境中一定要定位到classpath 否则默认到当前web应用下找 -->
+				<value>classpath:resource/properties/myResources/messages.properties</value>
+			</list>
+		</property>
+		<property name="defaultEncoding" value="UTF-8" />
+		<!-- 刷新资源文件的周期，以秒为单位 -->
+		<property name="cacheSeconds" value="60" />
+	</bean>
+
+	<!-- 国际化配置 -->
+	<bean id="localeResolver"
+		class="org.springframework.web.servlet.i18n.SessionLocaleResolver" />
+
+	<!-- 国际化拦截器配置 -->
+	<mvc:interceptors>
+		<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" />
+	</mvc:interceptors>
+</beans>

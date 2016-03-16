@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN" "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+<!-- 该文件主要负责指定sql映射文件，即与model层对象对应的映射文件 -->
+<sqlMapConfig>
+	<!-- 配置setting -->
+	<settings lazyLoadingEnabled="true" useStatementNamespaces="false"/> 
+	
+	<!-- 配置SQL映射文件 -->
+	<sqlMap resource="com/cdeledu/springframework/sql/User.xml"></sqlMap>
+</sqlMapConfig>

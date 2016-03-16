@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+	<!-- 应用程序名称 -->
+	<display-name></display-name>
+	<!-- 应用程序描述说明性文字 -->
+	<description></description>
+
+	<!-- 配置欢迎页 即:输入路径后直接跳转, 不必须输入具体请求路径 -->
+	<servlet-mapping>
+		<servlet-name>springMVC</servlet-name>
+		<url-pattern>/index</url-pattern><!-- 必须 -->
+	</servlet-mapping>
+	<!-- 若后台文件夹为admin且欲通过域名+admin直接访问，必须 -->
+	<servlet-mapping>
+		<servlet-name>springMVC</servlet-name>
+		<url-pattern>/admin/index</url-pattern>
+	</servlet-mapping>
+	<!-- 项目起始页面 -->
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>index</welcome-file>
+		<welcome-file>/index.html</welcome-file>
+	</welcome-file-list>
+	<login-config>
+		<auth-method>BASIC</auth-method>
+	</login-config>
+
+	<!-- 配置Session失效时间,单位：分钟 -->
+	<session-config>
+		<session-timeout>120</session-timeout>
+	</session-config>
+
+	<!-- Servlet初始化参数,配置springmvc模块 -->
+	<servlet>
+		<description>spring mvc servlet</description>
+		<servlet-name>default</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet
+		</servlet-class>
+		<init-param>
+			<description>spring mvc 配置文件</description>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:spring/springmvc-servlet.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+		<async-supported>true</async-supported>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>default</servlet-name>
+		<url-pattern>*.html</url-pattern>
+	</servlet-mapping>
+
+	<!-- spring的应用上下文 -->
+	<!-- 添加对spring的支持 -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:spring/applicationContext.xml</param-value>
+	</context-param>
+
+	<!-- ====================================================================== 
+		监听器 begin -->
+	<listener>
+		<description>spring监听器:以便在启动时就自动加载spring的配置</description>
+		<listener-class>org.springframework.web.context.ContextLoaderListener
+		</listener-class>
+	</listener>
+
+	<listener>
+		<description>防止spring内存溢出监听器 </description>
+		<listener-class>org.springframework.web.util.IntrospectorCleanupListener
+		</listener-class>
+	</listener>
+
+	<listener>
+		<description>log4j监听器</description>
+		<listener-class>org.springframework.web.util.Log4jConfigListener
+		</listener-class>
+	</listener>
+	<!-- ====================================================================== 
+		监听器 end -->
+
+	<!-- ====================================================================== 
+		过滤器 begin -->
+	<!-- 字符过滤,防止添加到数据库的数据为乱码 -->
+	<filter>
+		<description>字符集过滤器</description>
+		<filter-name>encodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter
+		</filter-class>
+		<init-param>
+			<description>字符集编码</description>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>encodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<!-- ====================================================================== 
+		过滤器 end -->
+</web-app>

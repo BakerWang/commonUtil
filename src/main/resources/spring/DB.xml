@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd">
+
+	<!-- ====================================================================== 
+		加载资源文件 其中包含变量信息，必须在Spring配置文件的最前面加载，即第一个加载 -->
+	<context:property-placeholder location="classpath:datasource/jdbc.properties" />
+
+
+	<!-- ====================================================================== 
+		数据库映射 指定连接数据库的基本属性信息 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<!-- 指定连接数据库的驱动 -->
+		<property name="driverClass" value="${database.jdbcName}" />
+		<!-- 指定连接数据库的URL 数据库名称,注意编码 -->
+		<property name="jdbcUrl" value="${database.dbUrl}" />
+		<!-- 指定连接数据库的用户名 -->
+		<property name="user" value="${database.dbUserName}" />
+		<!-- 指定连接数据库的密码 -->
+		<property name="password" value="${database.dbPassword}" />
+		
+		<property name="initialPoolSize" value="${c3p0.initialPoolSize}" />
+		<property name="minPoolSize" value="${c3p0.minPoolSize}" />
+		<property name="maxPoolSize" value="${c3p0.maxPoolSize}" />
+		<property name="maxIdleTime" value="${c3p0.maxIdleTime}" />
+		<property name="maxStatements" value="${c3p0.maxStatements}" />
+		<property name="maxStatementsPerConnection" value="${c3p0.maxStatementsPerConnection}" />
+		<property name="idleConnectionTestPeriod" value="${c3p0.idleConnectionTestPeriod}" />
+		<property name="acquireIncrement" value="${c3p0.acquireIncrement}" />
+		<property name="acquireRetryAttempts" value="${c3p0.acquireRetryAttempts}" />
+		<property name="acquireRetryDelay" value="${c3p0.acquireRetryDelay}" />
+		<property name="testConnectionOnCheckout" value="" />
+		<property name="checkoutTimeout" value="${c3p0.checkoutTimeout}" />
+		<property name="autoCommitOnClose" value="${c3p0.autoCommitOnClose}"/>
+		<property name="breakAfterAcquireFailure" value="${c3p0.breakAfterAcquireFailure}" />
+		<property name="numHelperThreads" value="${c3p0.numHelperThreads}" />
+		<property name="testConnectionOnCheckin" value="${c3p0.testConnectionOnCheckin}" />
+		<property name="automaticTestTable" value="${c3p0.automaticTestTable}" />
+	</bean>
+</beans>
