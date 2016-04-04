@@ -33,4 +33,8 @@
 * **2016-04-03**
  
 > + 新增maven-plugin配置以及说明
+
+* **2016-04-04**
+ 
+> + 新增JSONUtilHelper:JSON和JAVA的POJO的相互转换
  

@@ -68,7 +68,7 @@ public class ResourceController {
 		// 如果用户没有登陆,则跳转到登陆界面
 		if (null == session
 				|| null == session
-						.getAttribute(ConfigUtil.getSessionInfoName())) {
+						.getAttribute(ConfigUtil.getSessionInfoName("sessionInfoName"))) {
 			return "LoginForm";
 		}
 		return null;
