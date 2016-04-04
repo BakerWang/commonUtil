@@ -64,8 +64,8 @@ public class ConfigUtil {
 	 * @author: 独泪了无痕
 	 * @return
 	 */
-	public static final String getSessionInfoName() {
-		return getConfigByName(CONFIG, "sessionInfoName");
+	public static final String getSessionInfoName(String sessionName) {
+		return getConfigByName(CONFIG, sessionName);
 	}
 
 	/**
