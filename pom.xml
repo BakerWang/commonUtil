@@ -50,12 +50,16 @@
 	</developers>
 
 	<!-- ====================================================================== 
-		指定属性 方便管理 -->
+		全局属性配置(指定属性 方便管理) -->
 	<properties>
-		<!-- 指定Maven用什么编码来读取源码及文档 -->
+		<!-- 指定Maven用什么编码来读取源码及文档(定义资源文件的编码格式 ) -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<!-- 指定Maven用什么编码来呈现站点的HTML文件 -->
+		<!-- 指定Maven用什么编码来呈现站点的HTML文件 (定义资源文件的编码格式 ) -->
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<!-- maven插件的版本 -->
+		<plugin.version>2.4</plugin.version>
+		<!-- 用来定义war包的名称 -->
+		<project.build.name>commonUtil</project.build.name>
 	</properties>
 
 	<!-- 模块（有时称作子项目） 被构建成项目的一部分。列出的每个模块元素是指向该模块的目录的相对路径 -->
@@ -668,23 +672,31 @@
 
 		<!-- 使用的插件列表 。 -->
 		<pluginManagement>
+			<!-- plugin元素:设置构建的插件,包含描述插件所需要的信息。 -->
 			<plugins>
-				<!-- plugin元素包含描述插件所需要的信息。 -->
-				<plugin>
-					<!-- 把依赖的jar包拷到lib目录下 -->
 
-					<!-- 插件在仓库里的group ID -->
+				<!-- 发布插件 -->
+				<plugin>
+					<!-- 指定插件名称及版本号:插件在仓库里的group ID -->
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-dependency-plugin</artifactId>
 					<executions>
+						<!-- 将项目依赖从本地Maven仓库复制到某个特定的文件夹下面 -->
 						<execution>
 							<id>copy-dependencies</id>
 							<phase>package</phase>
 							<goals>
 								<goal>copy-dependencies</goal>
 							</goals>
+							<!-- 具体的配置 -->  
 							<configuration>
+								<!-- ${project.build.directory}为Maven内置变量，缺省为target -->
+								<!-- 把依赖的jar包拷到lib目录下 -->
 								<outputDirectory>${project.build.directory}/lib</outputDirectory>
+								<!-- 表示是否不包含间接依赖的包 -->
+								<excludeTransitive>false</excludeTransitive>
+								<!-- 表示复制的jar文件去掉版本信息 -->
+								<stripVersion>true</stripVersion>
 								<overWriteReleases>false</overWriteReleases>
 								<overWriteSnapshots>false</overWriteSnapshots>
 								<overWriteIfNewer>true</overWriteIfNewer>
@@ -693,17 +705,53 @@
 					</executions>
 				</plugin>
 
+				<!-- 用来处理资源文件:生成源代码jar包 (源代码打包插件) -->
+				<plugin>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>${plugin.version}</version>
+					<configuration>
+						<attach>true</attach>
+						<encoding>${project.build.sourceEncoding}</encoding>
+					</configuration>
+					<executions>
+						<execution>
+							<phase>compile</phase>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 
+				<!-- 编译插件:用来编译Java代码 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${plugin.version}</version>
+					<configuration>
+						<!-- 源代码编译版本 -->
+						<source>1.7</source>
+						<!-- 目标平台编译版本 -->
+						<target>1.7</target>
+						<!-- 字符集编码 -->
+						<encoding>${project.build.sourceEncoding}</encoding>
+					</configuration>
+				</plugin>
+
+				<!-- jar包插件 -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-jar-plugin</artifactId>
-					<version>2.4</version>
+					<version>${plugin.version}</version>
 					<configuration>
 						<archive>
 							<manifest>
-								<addClasspath>true</addClasspath>  <!-- 在jar包中增加依赖jar路径说明 -->
+								<!-- 告知 maven-jar-plugin添加一个 Class-Path元素到 MANIFEST.MF文件，以及在Class-Path元素中包括所有依赖项 -->
+								<addClasspath>true</addClasspath>
+								<!-- 在jar包中增加依赖jar路径说明 -->
 								<classpathPrefix>lib/</classpathPrefix>
-								<mainClass>com.garfield.gui.Main</mainClass>
+								<!-- 当用户使用 lib命令执行JAR文件时，使用该元素定义将要执行的类名 -->
+								<!-- <mainClass></mainClass> -->
 							</manifest>
 
 							<!-- 用maven在MANIFEST.MF资料中的Class-Path中增加当前目录(.) -->
@@ -714,10 +762,24 @@
 						</archive>
 					</configuration>
 				</plugin>
+
+				<!-- war插件 :将项目打成war包 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>${plugin.version}</version>
+					<configuration>
+						<!-- war包名字 -->
+						<warName>${project.build.name}</warName>
+						<!-- 强制字符集编码   -->
+						<encoding></encoding>
+					</configuration>
+				</plugin>
+
 			</plugins>
 		</pluginManagement>
 
-		<!-- 这个元素描述了项目相关的所有资源路径列表，例如和项目相关的属性文件，这些资源被包含在最终的打包文件里。 -->
+		<!-- 这个元素用于排除或包含某些资源文件,描述了项目相关的所有资源路径列表，例如和项目相关的属性文件，这些资源被包含在最终的打包文件里。 -->
 		<resources>
 			<!--打包进XML等文件，排除java及版本控制文件 -->
 			<resource>

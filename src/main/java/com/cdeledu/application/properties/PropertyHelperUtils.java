@@ -62,6 +62,7 @@ public class PropertyHelperUtils {
 			props.load(isr);
 		} catch (Exception e) {
 			log.info("读取Property文件出错：", e);
+			e.printStackTrace();
 		} finally {
 			IOUtils.closeQuietly(isr);
 			IOUtils.closeQuietly(ist);
