@@ -39,4 +39,17 @@
 * **2016-04-04**
  
 > + 新增JSONUtilHelper:JSON和JAVA的POJO的相互转换
+
+* **2016-04-27**
+ 
+> + 新增通用方法
+
+> > > <ol>
+> > > <li>获取调用方法的所在类:ClassUtilHelper.getClassName()</li>
+> > > <li>获取调用方法的所在方法:ClassUtilHelper.getMethodName()</li>
+> > > </ol>
+
+> + 删除测试类
+
+> + 新增接口:物流接口、
  
