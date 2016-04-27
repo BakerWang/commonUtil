@@ -22,4 +22,15 @@ public class ClassUtilHelper {
 	public static final String JAR_PATH_EXT = ".jar!";
 	/** 当Path为文件形式时, path会加入一个表示文件的前缀 */
 	public static final String PATH_FILE_PRE = "file:";
+	
+	/** 获取调用此方法的所在的类的名称 */
+	public static String getClassName() {
+		String clazz = Thread.currentThread().getStackTrace()[2].getClassName();
+		return clazz.substring(clazz.lastIndexOf(".") + 1);
+	}
+
+	/** 获取调用此方法的所在的方法的名称 */
+	public static String getMethodName() {
+		return Thread.currentThread().getStackTrace()[2].getMethodName();
+	}
 }
