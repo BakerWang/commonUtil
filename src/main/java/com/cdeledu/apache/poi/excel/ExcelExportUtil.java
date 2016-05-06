@@ -174,5 +174,6 @@ public class ExcelExportUtil {
 		byte[] content = os.toByteArray();
 		return content;
 	}
+
 	/*-------------------------- 公有方法 end   -------------------------------*/
 }
