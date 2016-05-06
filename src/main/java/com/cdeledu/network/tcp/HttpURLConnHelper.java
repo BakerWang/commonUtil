@@ -16,6 +16,7 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 
 import com.cdeledu.apache.collection.MapUtilHelper;
+import com.cdeledu.application.commons.ConstantHelper;
 import com.cdeledu.exception.ExceptionHelper;
 import com.cdeledu.exception.RuntimeExceptionHelper;
 import com.cdeledu.network.common.UrlHelper;
@@ -36,7 +38,7 @@ import com.cdeledu.network.common.model.ProxyBean;
 
 /**
  * @描述:
- * 		<ul>
+ *      <ul>
  *      <li>HttpURLConnection模拟HTTP请求网页内容</li>
  *      <li>Https协议工具类:封装了采用HttpURLConnection发送HTTP请求的GET\POST方法</li>
  *      <li>get请求可以获取静态页面，也可以把参数放在URL字串后面</li>
@@ -47,8 +49,8 @@ import com.cdeledu.network.common.model.ProxyBean;
  * @version: V1.2
  */
 public class HttpURLConnHelper {
-	// protected  static Logger logger = Logger.getLogger(this.);
-	 protected static Logger log=Logger.getLogger(HttpURLConnHelper.class.getName());  
+	// protected static Logger logger = Logger.getLogger(this.);
+	protected static Logger log = Logger.getLogger(HttpURLConnHelper.class.getName());
 	/** 异常原因 */
 	private static String IO_EXCEPTION_MEG = "Url无法正常连接,请检查是否网络连接正常";
 	// 定义数据分隔线
@@ -73,7 +75,7 @@ public class HttpURLConnHelper {
 			ProxyBean proxyBean) {
 		URLConnection urlConn = null;
 		HttpURLConnection httpUrlConnection = null;
-		if(StringUtils.isBlank(url)) {
+		if (StringUtils.isBlank(url)) {
 			throw new RuntimeExceptionHelper("请求的URL不能为空");
 		}
 		try {
@@ -142,7 +144,8 @@ public class HttpURLConnHelper {
 	}
 
 	/** 利用 HttpURLConnection发送代理服务器的POST()方法的请求 */
-	private static String sendProxyRequest(String url, String parameters, boolean isproxy, ProxyBean proxy) {
+	private static String sendProxyRequest(String url, String parameters, boolean isproxy, ProxyBean proxy,
+			Charset charset) {
 		String result = "";// 响应内容
 		HttpURLConnection httpConn = null;
 		OutputStream outStrm = null;
@@ -177,17 +180,19 @@ public class HttpURLConnHelper {
 				int size = is.available();
 				byte[] jsonBytes = new byte[size];
 				is.read(jsonBytes);
-				result = new String(jsonBytes, "UTF-8");
+				if (StringUtils.isEmpty(charset.name())) {
+					charset = ConstantHelper.UTF_8;
+				}
+				result = new String(jsonBytes, charset);
 			} else {
 				log.log(Level.ALL, IO_EXCEPTION_MEG);
 				throw new RuntimeException(IO_EXCEPTION_MEG);
-				
+
 			}
 
 			System.out.println("---> get to: " + url);
 			System.out.println("---> data is: " + parameters);
-			System.out.println("---> back data is: " + result);
-			
+
 		} catch (Exception e) {
 			ExceptionHelper.catchHttpUtilException(e, url);
 		} finally {
@@ -280,8 +285,8 @@ public class HttpURLConnHelper {
 	 *            发送请求的 URL(服务器地址)
 	 * @return 所代表远程资源的响应结果
 	 */
-	public static String sendPostRequest(String url) {
-		return sendProxyRequest(url, null, false, null);
+	public static String sendPostRequest(String url, Charset charset) {
+		return sendProxyRequest(url, null, false, null, charset);
 	}
 
 	/**
@@ -294,8 +299,8 @@ public class HttpURLConnHelper {
 	 *            是否使用代理模式
 	 * @return 所代表远程资源的响应结果
 	 */
-	public static String sendPostRequest(String url, String parameters) {
-		return sendProxyRequest(url, parameters, false, null);
+	public static String sendPostRequest(String url, String parameters, Charset charset) {
+		return sendProxyRequest(url, parameters, false, null, charset);
 	}
 
 	/**
@@ -309,7 +314,7 @@ public class HttpURLConnHelper {
 	 */
 	public static String sendPostRequest(String url, Map<String, String> paramsMap) {
 		String parameters = UrlHelper.formatParameters(paramsMap);
-		return sendPostRequest(url, parameters);
+		return sendPostRequest(url, parameters,null);
 	}
 
 	/**
@@ -330,13 +335,13 @@ public class HttpURLConnHelper {
 	 * @return
 	 */
 	public static String sendPostRequest(String url, String parameters, String host, int port, String userName,
-			String password) {
+			String password, Charset charset) {
 		ProxyBean proxy = new ProxyBean();
 		proxy.setHost(host);
 		proxy.setPort(port);
 		proxy.setUserName(userName);
 		proxy.setPassword(password);
-		return sendProxyRequest(url, parameters, true, proxy);
+		return sendProxyRequest(url, parameters, true, proxy, charset);
 	}
 
 	/**
