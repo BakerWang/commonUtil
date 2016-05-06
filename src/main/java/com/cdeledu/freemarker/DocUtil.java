@@ -1,4 +1,4 @@
-package com.cdeledu.application.word;
+package com.cdeledu.freemarker;
 
 import java.io.BufferedWriter;
 import java.io.File;
