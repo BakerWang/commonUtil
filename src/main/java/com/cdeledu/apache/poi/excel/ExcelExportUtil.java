@@ -1,11 +1,17 @@
 package com.cdeledu.apache.poi.excel;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hpsf.DocumentSummaryInformation;
+import org.apache.poi.hpsf.SummaryInformation;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFDataFormat;
@@ -13,10 +19,16 @@ import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.PrintSetup;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.Region;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.cdeledu.application.commons.ObjectUtils;
 
@@ -27,39 +39,74 @@ import com.cdeledu.application.commons.ObjectUtils;
  * @创建人: 独泪了无痕
  *
  */
-public class ExcelExportUtil {
-	/*-------------------------- 私有属性 start -------------------------------*/
-	/*-------------------------- 私有属性 end   -------------------------------*/
-	/*-------------------------- 私有方法 start -------------------------------*/
-	/** 单元格样式 */
-	private static CellStyle getStyle(Workbook workbook) {
-		CellStyle style = workbook.createCellStyle();
-		/**
-		 * 创建字体样式
-		 */
-		Font font = workbook.createFont();
-		font.setFontHeight((short) 14);
-		font.setFontName("宋体");
-		style.setFont(font);
+@SuppressWarnings("deprecation")
+final class ExcelExportUtil {
+	/** -------------------------- 私有属性 start ------------------------------- */
+	// 创建Excel文件(Workbook)
+	static HSSFWorkbook hssfWorkbook;
+	static XSSFWorkbook xssfWorkbook;
+	// 创建工作表(Sheet)
+	static HSSFSheet hSheet;
+	// 创建行,从0开始
+	static Row row;
+	// 创建行的单元格,从0开始
+	static Cell cell;
+	// 字体
+	static Font font;
+	// 日期格式
+	static DataFormat dataFormat;
+	/** -------------------------- 私有属性 end ------------------------------- */
 
+	/** -------------------------- 私有方法 start ------------------------------- */
+	/** 单元格样式 */
+	private static Map<String, CellStyle> getStyle(Workbook wb) {
+		Map<String, CellStyle> cellStyle = new HashMap<String, CellStyle>();
+		// 创建实例
+		CellStyle style;
 		/**
-		 * 创建单元格样式
+		 * 标题
 		 */
+		style = wb.createCellStyle();
+		// 创建字体实例
+		Font titleFont = wb.createFont();
+		// 字号 大小
+		titleFont.setFontHeightInPoints((short) 18);
+		// 加粗
+		titleFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
+		// 字体名
+		titleFont.setFontName("宋体");
+		// 设置水平居中
+		style.setAlignment(CellStyle.ALIGN_CENTER);
+		// 设置垂直居中
+		style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
+		// 设置字体
+		style.setFont(titleFont);
+		cellStyle.put("title", style);
+		/**
+		 * 表头
+		 */
+		// 创建字体实例
+		Font headerFont = wb.createFont();
+		headerFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
+		style = wb.createCellStyle();
 		style.setAlignment(CellStyle.ALIGN_CENTER);
 		style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-
+		style.setWrapText(true);
+		cellStyle.put("header", style);
 		/**
-		 * 设置单元格边框及颜色
+		 * 列
 		 */
-		style.setBorderBottom(CellStyle.BORDER_THIN);
-		style.setBorderLeft(CellStyle.BORDER_THIN);
-		style.setBorderRight(CellStyle.BORDER_THIN);
-		style.setBorderTop(CellStyle.BORDER_THIN);
-		return style;
+		style = wb.createCellStyle();
+		style.setAlignment(CellStyle.ALIGN_CENTER);
+		style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
+		style.setWrapText(true);
+		cellStyle.put("cell", style);
+		return cellStyle;
 	}
 
-	/*-------------------------- 私有方法 end   -------------------------------*/
-	/*-------------------------- 公有方法 start -------------------------------*/
+	/** -------------------------- 私有方法 end ------------------------------- */
+
+	/** -------------------------- 公有方法 start ------------------------------- */
 	/**
 	 * 
 	 * @Title: export
@@ -75,7 +122,8 @@ public class ExcelExportUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static <T> byte[] export(String title, String[][] cellNames, List<T> dbList) throws Exception {
+	public static <T> byte[] export(String title, String[][] cellNames, List<T> dbList)
+			throws Exception {
 		if (CollectionUtils.isEmpty(dbList) || dbList.size() < 0)
 			return null;
 
@@ -87,7 +135,6 @@ public class ExcelExportUtil {
 		HSSFFont font = workbook.createFont();
 		font.setFontName("宋体");
 		// 创建单元格样式
-		CellStyle style = getStyle(workbook);
 		// 创建Excel的sheet的一行
 		HSSFRow row = sheet.createRow(0);
 		// 设定行的高度
@@ -102,20 +149,15 @@ public class ExcelExportUtil {
 			if (cell_temp == null) {
 				cell_temp = row.createCell(j);
 			}
-			cell_temp.setCellStyle(style);
 		}
 		// 给Excel的单元格设置样式和赋值
-		cell.setCellStyle(style);
 		cell.setCellValue(title);
 		HSSFRow rowTitle = sheet.createRow(1);
 		for (int i = 0; i < cellNames.length; i++) {
 			HSSFCell cellTitle = rowTitle.createCell(i);
-			cellTitle.setCellStyle(style);
 			// 设置excel列名
 			cellTitle.setCellValue(cellNames[i][1]);
 		}
-		// 自动换行
-		style.setWrapText(true);
 		int i = 0;
 		for (T bd : dbList) {
 			row = sheet.createRow(i + 2);
@@ -134,7 +176,6 @@ public class ExcelExportUtil {
 				}
 				if ("str".equals(cellNames[j][2])) {
 					cellvalue.setCellValue(value);
-					cellvalue.setCellStyle(style);
 				} else {
 					HSSFDataFormat format = workbook.createDataFormat();
 					HSSFCellStyle formatStyle = workbook.createCellStyle();
@@ -147,13 +188,19 @@ public class ExcelExportUtil {
 					formatStyle.setFont(font);
 					if ("amt".equals(cellNames[j][2])) {
 						cellvalue.setCellValue(Double.parseDouble(value));
-						// 设置cell样式为定制的浮点数格式
+						// 设置保留2位小数--使用Excel内嵌的格式
 						formatStyle.setDataFormat(format.getFormat("#,##0.00"));
 					} else if ("datetime".equals(cellNames[j][2])) {
 						cellvalue.setCellValue(value);
-						// 设置cell样式为定制的日期时间格式
+						// 设置日期格式--使用Excel内嵌的格式
 						formatStyle.setDataFormat(format.getFormat("yyyy-MM-dd hh:mm:ss"));
 					}
+					// 设置货币格式--使用自定义的格式
+					// cellStyle.setDataFormat(format.getFormat("¥#,##0"));
+					// 设置百分比格式--使用自定义的格式
+					// cellStyle.setDataFormat(DataFormat.getBuiltinFormat("0.00%"));
+					// 设置中文大写格式--使用自定义的格式
+					// cellStyle.setDataFormat(format.getFormat("[DbNum2][$-804]0"));
 					cellvalue.setCellStyle(formatStyle);
 				}
 			}
@@ -175,5 +222,131 @@ public class ExcelExportUtil {
 		return content;
 	}
 
-	/*-------------------------- 公有方法 end   -------------------------------*/
+	/**
+	 * @方法:导出Excel文件
+	 * @创建人:独泪了无痕
+	 * @param excelFilePath
+	 *            文件路径
+	 * @param title
+	 *            标题
+	 * @param subject
+	 *            主题
+	 * @param author
+	 *            作者
+	 * @param company
+	 *            公司
+	 * @param comments
+	 *            备注
+	 */
+	public static void export(String excelFilePath, String title, String subject, String author,
+			String company, String comments) {
+
+		hssfWorkbook = new HSSFWorkbook();
+		Map<String, CellStyle> createStyles = getStyle(hssfWorkbook);
+		/**
+		 * 1.创建文档信息
+		 */
+		hssfWorkbook.createInformationProperties();
+		// 摘要信息
+		DocumentSummaryInformation dsi = hssfWorkbook.getDocumentSummaryInformation();
+		// 类别
+		dsi.setCategory("Microsoft Office Excel 97-2003 工作表 (.xls)");
+		if (StringUtils.isNotEmpty(company)) {
+			dsi.setCompany(company);
+		}
+		// 摘要信息
+		SummaryInformation si = hssfWorkbook.getSummaryInformation();
+		// 主题
+		if (StringUtils.isNotEmpty(subject)) {
+			si.setSubject(subject);
+		}
+		// 标题
+		if (StringUtils.isNotEmpty(title)) {
+			si.setTitle(title);
+		}
+		// 作者
+		if (StringUtils.isNotEmpty(author)) {
+			si.setAuthor(author);
+		}
+		// 备注
+		if (StringUtils.isNotEmpty(comments)) {
+			si.setComments(comments);
+		}
+
+		/**
+		 * 2.工作表设置
+		 */
+		hSheet = hssfWorkbook.createSheet(title);
+
+		// 指示是否符合页面打印选项是启用标志
+		hSheet.setFitToPage(true);
+		// 是否输出水平为中心的网页上
+		hSheet.setHorizontallyCenter(true);
+		// 自适应列宽度
+		hSheet.autoSizeColumn(1, true);
+		// 列宽度
+		hSheet.setDefaultColumnWidth((short)20);
+		/**
+		 * 3.设置打印区域
+		 */
+		PrintSetup printSetup = hSheet.getPrintSetup();
+		// 方向 [纵向:横向;默认状态false:纵向]
+		printSetup.setLandscape(true);
+		// 缩放比例(默认状态:100)
+		printSetup.setScale((short) 100);
+		// 页宽
+		printSetup.setFitWidth((short) 1);
+		// 页高
+		printSetup.setFitHeight((short) 0);
+		/**
+		 * 4.合并单元格的行或者列
+		 */
+		// 四个参数分别是：起始行，起始列，结束行，结束列
+		hSheet.addMergedRegion(new Region(0, (short) (0), 1, (short) 1));
+		hSheet.addMergedRegion(new Region(0, (short) (2), 1, (short) 4));
+
+		/**
+		 * 5.创建表头
+		 */
+		Row headerRow = hSheet.createRow(0);
+		Cell headerCell;
+
+		headerCell = headerRow.createCell(0);
+
+		headerCell.setCellValue("罗杰夫:luojiefu189");
+		headerCell.setCellStyle(createStyles.get("header"));
+
+		headerCell = headerRow.createCell(2);
+		headerCell.setCellValue("财务报表分析事务--成为老板想要的会计(第五期) \r\n ID:420554");
+		headerCell.setCellStyle(createStyles.get("header"));
+
+		Row headerRowRegion = hSheet.createRow(2);
+		headerRowRegion.setHeightInPoints(15);
+		Cell headerCellRegion;
+		
+		headerCellRegion = headerRowRegion.createCell(0);
+		headerCellRegion.setCellValue("序号");
+		headerCellRegion = headerRowRegion.createCell(1);
+		headerCellRegion.setCellValue("用户名");
+		// headerRowRegion = hSheet.createRow(1);
+		headerCellRegion = headerRowRegion.createCell(2);
+		headerCellRegion.setCellValue("姓名");
+		headerCellRegion = headerRowRegion.createCell(3);
+		headerCellRegion.setCellValue("交费时间");
+		headerCellRegion = headerRowRegion.createCell(4);
+		headerCellRegion.setCellValue("交费金额");
+
+		try {
+			FileOutputStream fout = new FileOutputStream(excelFilePath);
+			hssfWorkbook.write(fout);
+			fout.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) {
+		export("C://Users/Administrator/Desktop/test.xls", "数据统计表", null, null, null, null);
+	}
+	/** -------------------------- 公有方法 end ------------------------------- */
 }

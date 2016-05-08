@@ -39,13 +39,8 @@ import com.cdeledu.exception.ExceptionHelper;
  * @创建人: 独泪了无痕
  *
  */
-public class ExcelImportUtil {
+final class ExcelImportUtil {
 	/*--------------------------私有属性 start -------------------------------*/
-	/* Excel 2003 */
-	private final static String XLS = "xls";
-	/* Excel 2007 */
-	private final static String XLSX = "xlsx";
-
 	private static InputStream input = null;
 	private static Workbook workBook = null;
 	/* 默认的日期格式 */
@@ -222,9 +217,9 @@ public class ExcelImportUtil {
 			 * <li>当然也是可以使用文件后缀名来判断类型</li>
 			 * </ul>
 			 */
-			if (extensionName.toLowerCase().equals(XLS)) {
+			if (extensionName.toLowerCase().equals(ExcelHelperUtil.XLS)) {
 				workbook = new HSSFWorkbook(input);
-			} else if (extensionName.toLowerCase().equals(XLSX)) {
+			} else if (extensionName.toLowerCase().equals(ExcelHelperUtil.XLSX)) {
 				workbook = new XSSFWorkbook(input);
 			}
 			workBook = WorkbookFactory.create(input);
