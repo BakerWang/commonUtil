@@ -2,7 +2,6 @@ package com.cdeledu.apache.poi.excel;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
@@ -11,19 +10,31 @@ import java.util.Collection;
 import java.util.Date;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.cdeledu.exception.ExceptionHelper;
 
 /**
  * 
  * @类名称 : ExcelImportUtil
+ *      <ul>
+ *      <li>Java读取excel文件的顺序是</li>
+ *      <li>Excel文件->工作表->行->单元格 对应到POI中为:workbook->sheet->row->cell</li>
+ *      <li>● sheet:以0开始,以workbook.getNumberOfSheets()-1结束</li>
+ *      <li>● row:以0开始(getFirstRowNum),以getLastRowNum结束</li>
+ *      <li>● cell:以0开始(getFirstCellNum),以getLastCellNum结束</li>
+ *      <li>●</li>
+ *      <li></li>
+ *      </ul>
  * @功能说明 : Excel 导入工具
  * @创建人: 独泪了无痕
  *
@@ -39,6 +50,8 @@ public class ExcelImportUtil {
 	private static Workbook workBook = null;
 	/* 默认的日期格式 */
 	private static SimpleDateFormat Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	/** 文档对象 */
+	static Workbook workbook = null;
 	/** 工作表 sheet */
 	private static Sheet sheet = null;
 	/** 行 row */
@@ -210,22 +223,16 @@ public class ExcelImportUtil {
 			 * </ul>
 			 */
 			if (extensionName.toLowerCase().equals(XLS)) {
-				// workbook = new HSSFWorkbook(input);
+				workbook = new HSSFWorkbook(input);
 			} else if (extensionName.toLowerCase().equals(XLSX)) {
-				// workbook = new XSSFWorkbook(input);
+				workbook = new XSSFWorkbook(input);
 			}
 			workBook = WorkbookFactory.create(input);
 			result = getContent(workBook, clazz);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			if (input != null) {
-				try {
-					input.close();
-				} catch (IOException e) {
-					input = null;
-				}
-			}
+			IOUtils.closeQuietly(input);
 		}
 		return result;
 	}
