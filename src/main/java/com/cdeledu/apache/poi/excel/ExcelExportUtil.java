@@ -126,7 +126,7 @@ final class ExcelExportUtil {
 			throws Exception {
 		if (CollectionUtils.isEmpty(dbList) || dbList.size() < 0)
 			return null;
-
+		
 		// 创建Excel的工作书册 Workbook,对应到一个excel文档
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		Map<String, CellStyle> getStyle = createStyles(workbook);
@@ -435,11 +435,6 @@ final class ExcelExportUtil {
 			e.printStackTrace();
 		}
 	}
-
 	/** ----------------------------------------------------- 练习示例 end */
-	public static void main(String[] args) {
-		// export("C://Users/dell/Desktop/workbook.xls", "数据统计表", null, null,
-		// null, null);
-	}
 	/** -------------------------- 公有方法 end ------------------------------- */
 }
