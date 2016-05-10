@@ -55,52 +55,52 @@ final class ExcelExportUtil {
 	static Font font;
 	// 日期格式
 	static DataFormat dataFormat;
+
 	/** -------------------------- 私有属性 end ------------------------------- */
 
 	/** -------------------------- 私有方法 start ------------------------------- */
 	/** 单元格样式 */
-	private static Map<String, CellStyle> getStyle(Workbook wb) {
+	private static Map<String, CellStyle> createStyles(Workbook wb) {
 		Map<String, CellStyle> cellStyle = new HashMap<String, CellStyle>();
 		// 创建实例
 		CellStyle style;
+		// 创建字体实例
+		Font font;
+
 		/**
 		 * 标题
 		 */
 		style = wb.createCellStyle();
-		// 创建字体实例
-		Font titleFont = wb.createFont();
-		// 字号 大小
-		titleFont.setFontHeightInPoints((short) 18);
-		// 加粗
-		titleFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
-		// 字体名
-		titleFont.setFontName("宋体");
-		// 设置水平居中
-		style.setAlignment(CellStyle.ALIGN_CENTER);
-		// 设置垂直居中
-		style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-		// 设置字体
-		style.setFont(titleFont);
+		font = wb.createFont();
+		font.setFontHeightInPoints((short) 18);// 字号 大小
+		font.setBoldweight(Font.BOLDWEIGHT_BOLD);// 加粗
+		font.setFontName("宋体");// 字体名
+		style.setAlignment(CellStyle.ALIGN_CENTER);// 设置水平居中
+		style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);// 设置垂直居中
+		style.setFont(font);// 设置字体
 		cellStyle.put("title", style);
+
 		/**
 		 * 表头
 		 */
-		// 创建字体实例
-		Font headerFont = wb.createFont();
-		headerFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
+		font = wb.createFont();
+		font.setBoldweight(Font.BOLDWEIGHT_BOLD);// 加粗
 		style = wb.createCellStyle();
-		style.setAlignment(CellStyle.ALIGN_CENTER);
-		style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-		style.setWrapText(true);
+		style.setAlignment(CellStyle.ALIGN_CENTER);// 设置水平居中
+		style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);// 设置垂直居中
+		style.setWrapText(true);// 自动换行
+		style.setFont(font);
 		cellStyle.put("header", style);
+
 		/**
 		 * 列
 		 */
 		style = wb.createCellStyle();
-		style.setAlignment(CellStyle.ALIGN_CENTER);
-		style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
+		style.setAlignment(CellStyle.ALIGN_CENTER);// 设置水平居中
+		style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);// 设置垂直居中
 		style.setWrapText(true);
 		cellStyle.put("cell", style);
+
 		return cellStyle;
 	}
 
@@ -126,9 +126,10 @@ final class ExcelExportUtil {
 			throws Exception {
 		if (CollectionUtils.isEmpty(dbList) || dbList.size() < 0)
 			return null;
-
+		
 		// 创建Excel的工作书册 Workbook,对应到一个excel文档
 		HSSFWorkbook workbook = new HSSFWorkbook();
+		Map<String, CellStyle> getStyle = createStyles(workbook);
 		// 创建Excel的工作sheet,对应到一个excel文档的tab
 		HSSFSheet sheet = workbook.createSheet(title);
 		// 创建字体样式
@@ -176,6 +177,7 @@ final class ExcelExportUtil {
 				}
 				if ("str".equals(cellNames[j][2])) {
 					cellvalue.setCellValue(value);
+					cellvalue.setCellStyle(getStyle.get("cell"));
 				} else {
 					HSSFDataFormat format = workbook.createDataFormat();
 					HSSFCellStyle formatStyle = workbook.createCellStyle();
@@ -222,6 +224,7 @@ final class ExcelExportUtil {
 		return content;
 	}
 
+	/** ----------------------------------------------------- 练习示例 start */
 	/**
 	 * @方法:导出Excel文件
 	 * @创建人:独泪了无痕
@@ -237,12 +240,13 @@ final class ExcelExportUtil {
 	 *            公司
 	 * @param comments
 	 *            备注
+	 * @see <a href="">练习示例</a>
 	 */
 	public static void export(String excelFilePath, String title, String subject, String author,
 			String company, String comments) {
 
 		hssfWorkbook = new HSSFWorkbook();
-		Map<String, CellStyle> createStyles = getStyle(hssfWorkbook);
+		Map<String, CellStyle> getStyle = createStyles(hssfWorkbook);
 		/**
 		 * 1.创建文档信息
 		 */
@@ -276,7 +280,12 @@ final class ExcelExportUtil {
 		/**
 		 * 2.工作表设置
 		 */
-		hSheet = hssfWorkbook.createSheet(title);
+		if(StringUtils.isNoneBlank(title))
+			hSheet = hssfWorkbook.createSheet(title);
+		else 
+			hSheet = hssfWorkbook.createSheet();
+		
+		
 
 		// 指示是否符合页面打印选项是启用标志
 		hSheet.setFitToPage(true);
@@ -285,12 +294,12 @@ final class ExcelExportUtil {
 		// 自适应列宽度
 		hSheet.autoSizeColumn(1, true);
 		// 列宽度
-		hSheet.setDefaultColumnWidth((short)20);
+		hSheet.setDefaultColumnWidth((short) 20);
 		/**
 		 * 3.设置打印区域
 		 */
 		PrintSetup printSetup = hSheet.getPrintSetup();
-		// 方向 [纵向:横向;默认状态false:纵向]
+		// 设置一个布尔值，允许或阻止横向打印[默认状态:false]
 		printSetup.setLandscape(true);
 		// 缩放比例(默认状态:100)
 		printSetup.setScale((short) 100);
@@ -314,39 +323,122 @@ final class ExcelExportUtil {
 		headerCell = headerRow.createCell(0);
 
 		headerCell.setCellValue("罗杰夫:luojiefu189");
-		headerCell.setCellStyle(createStyles.get("header"));
+		headerCell.setCellStyle(getStyle.get("header"));
 
 		headerCell = headerRow.createCell(2);
 		headerCell.setCellValue("财务报表分析事务--成为老板想要的会计(第五期) \r\n ID:420554");
-		headerCell.setCellStyle(createStyles.get("header"));
+		headerCell.setCellStyle(getStyle.get("header"));
 
 		Row headerRowRegion = hSheet.createRow(2);
 		headerRowRegion.setHeightInPoints(15);
 		Cell headerCellRegion;
-		
+
 		headerCellRegion = headerRowRegion.createCell(0);
 		headerCellRegion.setCellValue("序号");
+
 		headerCellRegion = headerRowRegion.createCell(1);
 		headerCellRegion.setCellValue("用户名");
-		// headerRowRegion = hSheet.createRow(1);
+
 		headerCellRegion = headerRowRegion.createCell(2);
 		headerCellRegion.setCellValue("姓名");
+		headerCellRegion.setCellStyle(getStyle.get("header"));
+
 		headerCellRegion = headerRowRegion.createCell(3);
 		headerCellRegion.setCellValue("交费时间");
+		headerCellRegion.setCellStyle(getStyle.get("header"));
+
 		headerCellRegion = headerRowRegion.createCell(4);
 		headerCellRegion.setCellValue("交费金额");
+		headerCellRegion.setCellStyle(getStyle.get("header"));
 
+		/**
+		 * 6.数据部分
+		 */
+		int leng = 6;
+		int num = 0;
+		int sum = 0;
+		for (int i = 0; i < leng; i++) {
+			// 定义数据从第4行开始
+			Cell rowCell;
+			Row cellRow = hSheet.createRow(i + 3);
+			rowCell = cellRow.createCell(0);
+			rowCell.setCellValue(i + 1);
+			rowCell.setCellStyle(getStyle.get("cell"));
+
+			rowCell = cellRow.createCell(1);
+			rowCell.setCellValue("test" + i);
+			rowCell.setCellStyle(getStyle.get("cell"));
+
+			rowCell = cellRow.createCell(2);
+			rowCell.setCellValue("test" + i);
+			rowCell.setCellStyle(getStyle.get("cell"));
+
+			rowCell = cellRow.createCell(3);
+			rowCell.setCellValue("test" + i);
+			rowCell.setCellStyle(getStyle.get("cell"));
+
+			rowCell = cellRow.createCell(4);
+			int result = i * i;
+			rowCell.setCellValue(result);
+			rowCell.setCellStyle(getStyle.get("cell"));
+			num++;
+			sum += result;
+		}
+
+		/**
+		 * 7.统计部分
+		 */
+		Row countRowRegion;
+		Cell countCell;
+		hSheet.addMergedRegion(new Region(leng + 3, (short) (0), leng + 3, (short) 3));
+		countRowRegion = hSheet.createRow(leng + 3);
+		countCell = countRowRegion.createCell(0);
+		countCell.setCellValue("总计");
+		countCell.setCellStyle(getStyle.get("header"));
+		countCell = countRowRegion.createCell(4);
+		countCell.setCellValue(sum);
+		countCell.setCellStyle(getStyle.get("cell"));
+		hSheet.addMergedRegion(new Region(leng + 4, (short) (0), leng + 4, (short) 3));
+		countRowRegion = hSheet.createRow(leng + 4);
+		countCell = countRowRegion.createCell(0);
+		countCell.setCellValue("总数");
+		countCell.setCellStyle(getStyle.get("header"));
+		countCell = countRowRegion.createCell(4);
+		countCell.setCellValue(num);
+		countCell.setCellStyle(getStyle.get("cell"));
+		hSheet.addMergedRegion(new Region(leng + 5, (short) (0), leng + 5, (short) 3));
+		countRowRegion = hSheet.createRow(leng + 5);
+		countCell = countRowRegion.createCell(0);
+		countCell.setCellValue("老师获取分成金额");
+		countCell.setCellStyle(getStyle.get("header"));
+		countCell = countRowRegion.createCell(4);
+		countCell.setCellValue(sum * 0.8);
+		countCell.setCellStyle(getStyle.get("cell"));
 		try {
+			/**
+			 * 第一种输出到路径文件
+			 */
 			FileOutputStream fout = new FileOutputStream(excelFilePath);
 			hssfWorkbook.write(fout);
+			fout.flush();
 			fout.close();
+			/**
+			 * 第二种输出到页面,形成下载文件
+			 */
+			/*
+			 * response.reset();
+			 * response.setContentType("application/x-msdownload");
+			 * response.setHeader("Content-Disposition","attachment; filename="
+			 * +new String(pName.getBytes("gb2312"),"ISO-8859-1")+".xls");
+			 */
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
+	/** ----------------------------------------------------- 练习示例 end */
 	public static void main(String[] args) {
-		export("C://Users/Administrator/Desktop/test.xls", "数据统计表", null, null, null, null);
+		// export("C://Users/dell/Desktop/workbook.xls", "数据统计表", null, null,
+		// null, null);
 	}
 	/** -------------------------- 公有方法 end ------------------------------- */
 }
