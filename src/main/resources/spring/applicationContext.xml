@@ -80,21 +80,36 @@
 	<!-- 异常处理类:系统错误转发配置[并记录错误日志] -->
 	<bean id="exception"
 		class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
-		<!-- 定义默认的异常处理页面，当该异常类型的注册时使用 -->
-		<!-- <property name="defaultErrorView" value="error"></property> -->
+		<!-- 设置日志输出级别，不定义则默认不输出警告等错误日志信息 -->
+		<property name="warnLogCategory" value="info" />
+		<!-- 定义默认的异常处理页面，当该异常类型的注册时使用. 默认为500，系统错误(error.jsp) -->
+		<!-- 表示当抛出异常但没有在exceptionMappings里面找到对应的异常时 返回名叫common/error的视图 -->
+		<property name="defaultErrorView" value="500" />
 		<!-- 定义异常处理页面用来获取异常信息的变量名，默认名为exception -->
-		<!-- <property name="exceptionAttribute" value="ex"></property> -->
+		<property name="exceptionAttribute" value="ex" />
+		<!-- 表示在发生异常时默认的HttpServletResponse的返回码是多少，默认是200 -->
+		<property name="defaultStatusCode" value="404" />
+		<!-- 配置多个statusCode -->
+		<property name="statusCodes"><!-- 配置多个statusCode -->
+			<props>
+				<prop key="error">500</prop>  <!-- error.jsp -->
+				<prop key="error">404</prop>    <!-- error.jsp -->
+			</props>
+		</property>
 		<!-- 定义需要特殊处理的异常，用类名或完全路径名作为key，异常也页名作为值 -->
 		<property name="exceptionMappings">
+			<!-- 这里你可以根据需要定义N多个错误异常转发 -->
 			<props>
 				<!-- 数据库错误(dbError.jsp) -->
-				<!-- <prop key="java.sql.SQLException">showDBError</prop> -->
+				<prop key="java.sql.SQLException">dbError</prop>
 				<!-- 参数绑定错误(如：必须参数没传递)(bizError.jsp) -->
-				<!-- <proo key="org.springframework.web.bind.ServletRequestBindingException">bizError</proo> -->
-				<!-- <prop key="java.lang.RuntimeException">showError</prop> -->
+				<prop key="org.springframework.web.bind.ServletRequestBindingException">bizError</prop>
+				<!-- 参数错误(bizError.jsp) -->
+				<prop key="java.lang.IllegalArgumentException">bizError</prop>
+				<!-- 参数类型有误(bizError.jsp) -->
+				<prop key="org.springframework.validation.BindException">bizError</prop>
 				<!-- 其他错误为'未定义错误'(unknowError.jsp) -->
-				<!-- <prop key="java.lang.Exception">unknowError</prop> -->
-				<!-- 这里还可以继续扩展对不同异常类型的处理 -->
+				<prop key="java.lang.Exception">unknowError</prop>
 			</props>
 		</property>
 	</bean>
