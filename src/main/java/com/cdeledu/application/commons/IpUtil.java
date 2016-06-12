@@ -1,5 +1,7 @@
 package com.cdeledu.application.commons;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -8,6 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.cdeledu.application.regex.RegexUtil;
 import com.cdeledu.network.common.UrlHelper;
@@ -40,30 +45,38 @@ public class IpUtil {
 	/*--------------------------私有方法 end-------------------------------*/
 	/*--------------------------公有方法 start-------------------------------*/
 	/**
-	 * 
-	 * @Title：getIpAddr
-	 * @Description：获取客户端的IP地址
+	 * @方法描述: 获取客户端请求ip地址
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年6月12日 上午9:59:06
 	 * @param request
 	 * @return
-	 * @return：String 返回类型
 	 */
 	public static String getClientIP(HttpServletRequest request) {
-		String ip = request.getHeader("x-forwarded-for");
-		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-			ip = request.getHeader("Proxy-Client-IP");
-		}
-		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-			ip = request.getHeader("WL-Proxy-Client-IP");
-		}
-		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-			ip = request.getRemoteAddr();
-		}
-		if (ip.equals("0:0:0:0:0:0:0:1")) {
-			ip = "127.0.0.1";
-		}
-		// 多级反向代理检测
-		if (ip != null && ip.split(",").length > 1) {
-			ip = ip.split(",")[0];
+		String ip = null;
+		if (null != request) {
+			String proxs[] = { "X-Forwarded-For", "Proxy-Client-IP", "WL-Proxy-Client-IP",
+					"HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR", "x-real-ip" };
+			for (String prox : proxs) {
+				ip = request.getHeader(prox);
+				if (StringUtils.isBlank(ip) || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+					continue;
+				} else {
+					break;
+				}
+			}
+
+			if (ip.equals("0:0:0:0:0:0:0:1")) {
+				ip = "127.0.0.1";
+			}
+
+			if (StringUtils.isBlank(ip)) {
+				ip = request.getRemoteAddr();
+			}
+
+			// 多级反向代理检测
+			if (ip != null && ip.split(",").length > 1) {
+				ip = ip.split(",")[0];
+			}
 		}
 		return ip;
 	}
@@ -80,8 +93,7 @@ public class IpUtil {
 		String localip = null;// 本地IP，如果没有配置外网IP则返回它
 		String netip = null;// 外网IP
 
-		Enumeration<NetworkInterface> netInterfaces = NetworkInterface
-				.getNetworkInterfaces();
+		Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
 
 		InetAddress ip = null;
 		boolean finded = false;// 是否找到外网IP
@@ -113,9 +125,9 @@ public class IpUtil {
 	/**
 	 * 
 	 * @Title：getIpInfoBySinaUrl
-	 * @Description：新浪接口(IP值为空时获取本地)
-	 * @param ip
-	 * @return <ul>
+	 * @Description：新浪接口(IP值为空时获取本地) @param ip
+	 * @return
+	 *         <ul>
 	 *         <li>ret : 有且仅当tet的值是1才有效</li>
 	 *         <li>country: 国家</li>
 	 *         <li>province: 省份</li>
@@ -145,7 +157,8 @@ public class IpUtil {
 	 * @Title：getIpInfoByTaoBaoUrl
 	 * @Description：淘宝ip查询接口
 	 * @param ip
-	 * @return <ul>
+	 * @return
+	 *         <ul>
 	 *         <li>code : 0：成功，1：失败</li>
 	 *         <li>country: 国家</li>
 	 *         <li>area: 区域</li>
@@ -185,10 +198,60 @@ public class IpUtil {
 		return _array;
 	}
 
-	public static void main(String[] args) {
-		String ip = "219.232.43.228";
-		System.out.println(iplookup(ip));
-
+	/**
+	 * @方法描述: 检测 ip地址 是否是 通的 ，即 Ping 操作
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年6月12日 上午11:03:51
+	 * @param ip
+	 * @return
+	 */
+	public static final boolean isPing(String ip) {
+		boolean status = false;
+		if (StringUtils.isNotBlank(ip)) {
+			Runtime runtime = Runtime.getRuntime(); // 获取当前程序的运行进对象
+			Process process = null; // 声明处理类对象
+			String line = null; // 返回行信息
+			InputStreamReader isr = null; // 字节流
+			BufferedReader br = null;
+			try {
+				process = runtime.exec("ping " + ip); // PING
+				isr = new InputStreamReader(process.getInputStream());// 把输入流转换成字节流
+				br = new BufferedReader(isr);// 从字节中读取文本
+				while ((line = br.readLine()) != null) {
+					if (line.contains("TTL")) {
+						status = true;
+						break;
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				runtime.exit(1);
+			} finally {
+				IOUtils.closeQuietly(br);
+				IOUtils.closeQuietly(isr);
+			}
+		}
+		return status;
 	}
-	/*--------------------------公有方法 end-------------------------------*/
+
+	/**
+	 * 
+	 * @方法描述: 获取IP地址
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年6月12日 上午11:29:38
+	 * @param ip
+	 * @return
+	 */
+	public static final String getHostAddress(String ip) {
+		String hostAddress = null;
+		if (StringUtils.isNotBlank(ip)) {
+			try {
+				hostAddress = InetAddress.getByName(ip).getHostAddress();
+			} catch (Exception e) {
+
+			}
+		}
+		return hostAddress;
+	}
+	/** --------------------------公有方法 end------------------------------- */
 }
