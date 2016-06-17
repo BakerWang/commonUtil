@@ -13,6 +13,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cdeledu.application.commons.ConstantHelper;
+
 /**
  * 
  * @ClassName: FileUtilHelper
@@ -24,7 +26,19 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public class FileUtilHelper extends FileUtils {
 	/** -------------------------- 属性 start ------------------------------- */
+
+	/** -------------------------- 属性 end ------------------------------- */
+	/** -------------------------- 私有方法 start ------------------------------- */
 	
+	@SuppressWarnings("unused")
+	private static String[] splitt(String str){
+        String strr = str.trim();
+        String[] abc = strr.split("[\\p{Space}]+");
+        	for (int i = 0; i < abc.length; i++) {
+        		System.out.println(abc[i]);
+			}
+        return abc;
+    }
 	/** -------------------------- 属性 end ------------------------------- */
 
 	/**
@@ -176,22 +190,39 @@ public class FileUtilHelper extends FileUtils {
 			return file.getAbsolutePath();
 		}
 	}
+
+	public static String readFile(String filePath) {
+		return readFile(filePath, ConstantHelper.UTF_8.name());
+	}
 	/**
 	 * @方法描述: 读取文件内容(i/o进行读取htm模版)
 	 * @创建者: 独泪了无痕
 	 * @创建时间: 2016年2月26日 下午2:07:28
 	 * @param filePath
+	 *            要读取文件的路径
+	 * @param encoding
+	 *            要读取文件的编码
+	 * @param filePath
+	 *            要读取文件的路径
 	 * @return
 	 */
-	public static  String readFile(String filePath) {
+	public static String readFile(String filePath, String encoding) {
 		String fileContent = "";
+		if (StringUtils.isBlank(encoding))
+			return fileContent;
+		
+		if (StringUtils.isBlank(encoding) || StringUtils.equalsIgnoreCase(encoding, "null")) {
+			encoding = ConstantHelper.UTF_8.name();
+		}
+
 		try {
 			File f = new File(filePath);
 			if (f.isFile() && f.exists()) {
-				InputStreamReader read = new InputStreamReader(new FileInputStream(f), "UTF-8");
+				InputStreamReader read = new InputStreamReader(new FileInputStream(f), encoding);
 				BufferedReader reader = new BufferedReader(read);
 				String line;
 				while ((line = reader.readLine()) != null) {
+					// splitt(line); // system控制台
 					fileContent += line + "\n";
 				}
 				reader.close();
