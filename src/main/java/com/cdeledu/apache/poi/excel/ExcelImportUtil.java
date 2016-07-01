@@ -40,20 +40,27 @@ import com.cdeledu.exception.ExceptionHelper;
 final class ExcelImportUtil {
 	/*--------------------------私有属性 start -------------------------------*/
 	private static Logger logger = Logger.getLogger(ExcelImportUtil.class);
-	private static InputStream input = null;
 	/* 默认的日期格式 */
 	private static SimpleDateFormat Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	/** 文档对象 */
-	private static Workbook workBook = null;
-	/** 工作表 sheet */
-	private static Sheet sheet = null;
-	/** 行 row */
-	private static Row row = null;
-	/** 列 cell */
-	private static Cell cell = null;
 
 	/*--------------------------私有属性 end   -------------------------------*/
 	/*--------------------------私有方法 start -------------------------------*/
+	/**
+	 * @方法描述: 解析execl文档内容
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年7月1日 下午4:39:24
+	 * @param workBook
+	 *            文档对象
+	 * @param Sheet
+	 *            工作表 sheet
+	 * @param Row
+	 *            行
+	 * @param Cell
+	 *            列
+	 * @param clazz
+	 * @return
+	 * @throws Exception
+	 */
 	private static <T> Collection<T> getContent(Workbook workBook, Class<T> clazz)
 			throws Exception {
 		Collection<T> result = new ArrayList<T>();
@@ -61,7 +68,7 @@ final class ExcelImportUtil {
 		Field[] fields = clazz.getDeclaredFields();
 
 		// 获取第一页
-		sheet = workBook.getSheetAt(0);
+		Sheet sheet = workBook.getSheetAt(0);
 		// 获取行数
 		int rowMem = sheet.getLastRowNum();
 
@@ -90,7 +97,7 @@ final class ExcelImportUtil {
 			 */
 
 			for (int rowNum = 1; rowNum <= sheet.getLastRowNum(); rowNum++) {
-				row = sheet.getRow(rowNum);
+				Row row = sheet.getRow(rowNum);
 				if (row == null) {
 					continue;
 				}
@@ -98,7 +105,7 @@ final class ExcelImportUtil {
 
 				// 循环列Cell,获取单元格信息
 				for (int cellNum = 0; cellNum < row.getLastCellNum(); cellNum++) {
-					cell = row.getCell(cellNum);
+					Cell cell = row.getCell(cellNum);
 					if (cell == null) {
 						continue;
 					}
@@ -194,8 +201,19 @@ final class ExcelImportUtil {
 
 	/*--------------------------私有方法 end   -------------------------------*/
 	/*--------------------------公有方法 start -------------------------------*/
+	/**
+	 * @方法描述: 解析Excel文档文件
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年5月8日 下午4:40:57
+	 * @param excelPath
+	 *            excel文件路径
+	 * @param clazz
+	 *            解析Class实体类
+	 * @return
+	 */
 	public static <T> Collection<T> excelParse(String excelPath, Class<T> clazz) {
 		Collection<T> result = new ArrayList<T>();
+		InputStream input = null;
 		// 如果将要解析的文件路径为空
 		if (StringUtils.isBlank(excelPath)) {
 			ExceptionHelper.getExceptionHint("ExcelImportUtil", "excelParse", "excelPath不能为空!");
@@ -204,7 +222,7 @@ final class ExcelImportUtil {
 		try {
 			// 加载文档
 			input = new FileInputStream(new File(excelPath));
-			workBook = WorkbookFactory.create(input);
+			Workbook workBook = WorkbookFactory.create(input);
 			result = getContent(workBook, clazz);
 		} catch (Exception ex) {
 			logger.equals(ex);
