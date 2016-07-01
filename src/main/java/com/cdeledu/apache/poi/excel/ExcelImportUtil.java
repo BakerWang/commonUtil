@@ -9,17 +9,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.cdeledu.exception.ExceptionHelper;
 
@@ -41,12 +39,12 @@ import com.cdeledu.exception.ExceptionHelper;
  */
 final class ExcelImportUtil {
 	/*--------------------------私有属性 start -------------------------------*/
+	private static Logger logger = Logger.getLogger(ExcelImportUtil.class);
 	private static InputStream input = null;
-	private static Workbook workBook = null;
 	/* 默认的日期格式 */
 	private static SimpleDateFormat Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	/** 文档对象 */
-	static Workbook workbook = null;
+	private static Workbook workBook = null;
 	/** 工作表 sheet */
 	private static Sheet sheet = null;
 	/** 行 row */
@@ -56,7 +54,8 @@ final class ExcelImportUtil {
 
 	/*--------------------------私有属性 end   -------------------------------*/
 	/*--------------------------私有方法 start -------------------------------*/
-	private static <T> Collection<T> getContent(Workbook workBook, Class<T> clazz) throws Exception {
+	private static <T> Collection<T> getContent(Workbook workBook, Class<T> clazz)
+			throws Exception {
 		Collection<T> result = new ArrayList<T>();
 
 		Field[] fields = clazz.getDeclaredFields();
@@ -203,29 +202,12 @@ final class ExcelImportUtil {
 		}
 
 		try {
-
 			// 加载文档
 			input = new FileInputStream(new File(excelPath));
-			// 文件名的后缀名
-			String extensionName = FilenameUtils.getExtension(excelPath);
-
-			/**
-			 * <ul>
-			 * <li>在解析Excel的时候,判断导入Excel的版本,调用不同的方法</li>
-			 * <li>推荐使用WorkbookFactory.create(inputStream)来创建Workbook</li>
-			 * <li>在WorkbookFactory.create()函数中,是根据文件类型来分别创建合适的Workbook对象</li>
-			 * <li>当然也是可以使用文件后缀名来判断类型</li>
-			 * </ul>
-			 */
-			if (extensionName.toLowerCase().equals(ExcelHelperUtil.XLS)) {
-				workbook = new HSSFWorkbook(input);
-			} else if (extensionName.toLowerCase().equals(ExcelHelperUtil.XLSX)) {
-				workbook = new XSSFWorkbook(input);
-			}
 			workBook = WorkbookFactory.create(input);
 			result = getContent(workBook, clazz);
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception ex) {
+			logger.equals(ex);
 		} finally {
 			IOUtils.closeQuietly(input);
 		}
