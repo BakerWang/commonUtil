@@ -196,7 +196,7 @@ final class ExcelImportUtil {
 			cellValue = "";
 		}
 
-		return cellValue;
+		return cellValue.trim();
 	}
 
 	/*--------------------------私有方法 end   -------------------------------*/
