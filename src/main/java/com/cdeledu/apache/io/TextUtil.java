@@ -61,8 +61,7 @@ public class TextUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static boolean writeTxtFile(String filePath, String filein)
-			throws Exception {
+	public static boolean writeTxtFile(String filePath, String filein){
 		boolean flag = false;
 
 		String temp = "";
