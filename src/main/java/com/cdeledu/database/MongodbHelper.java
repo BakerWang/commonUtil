@@ -142,7 +142,7 @@ public class MongodbHelper {
 				String.format(msg, serverAddrs, serverPort);
 			String.format(msg, serverAddr, serverPort);
 			logger.error(msg);
-			throw new RuntimeException(e);
+			throw new RuntimeException(e.getClass().getName() + ": " + e.getMessage(),e);
 		}
 	}
 
