@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cdeledu.application.access.util.Span;
-import com.cdeledu.application.commons.IpUtil;
+import com.cdeledu.network.common.IpUtilHelper;
 import com.cdeledu.network.socket.SocketUtilHelper;
 import com.cdeledu.xml.XmlUtils;
 
@@ -147,7 +147,7 @@ public class AccessControl {
 	 * @return 是否允许访问
 	 */
 	public boolean isPermit(HttpServletRequest request) {
-		return isPermit(IpUtil.getClientIP(request));
+		return isPermit(IpUtilHelper.getClientIP(request));
 	}
 
 	/**
