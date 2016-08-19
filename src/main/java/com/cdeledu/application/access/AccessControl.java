@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cdeledu.application.access.util.Span;
-import com.cdeledu.network.common.IpUtilHelper;
+import com.cdeledu.network.common.util.IpUtilHelper;
 import com.cdeledu.network.socket.SocketUtilHelper;
 import com.cdeledu.xml.XmlUtils;
 
