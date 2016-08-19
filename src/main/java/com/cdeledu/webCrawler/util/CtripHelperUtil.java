@@ -3,8 +3,6 @@ package com.cdeledu.webCrawler.util;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.cdeledu.datetime.DateUtilHelper;
 import com.cdeledu.network.tcp.HttpURLConnHelper;
 
