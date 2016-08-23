@@ -3,12 +3,14 @@ package com.cdeledu.application.commons;
 import java.util.Collection;
 import java.util.Date;
 
-/**
+/***
  * @类描述: 类处理相关工具
  * @创建者: 独泪了无痕
  * @创建日期: 2016年1月23日 上午12:35:50
- * @版本: V1.0
+ * @版本: V1.2
  * @since: JDK 1.7
+ * @see <a href="http://git.oschina.net/loolly/hutool">参考文档1</a>
+ * @see <a href="http://git.oschina.net/jfinal/jfinal-weixin">参考文档2</a>
  */
 public final class ClassUtilHelper {
 
