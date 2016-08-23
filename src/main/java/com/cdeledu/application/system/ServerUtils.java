@@ -44,7 +44,12 @@ public class ServerUtils {
 			return "unknown";
 		}
 	}
-
+	
+	/**
+	 * 运行shell
+	 * @param script
+	 * @return 执行结果
+	 */
 	private static String runShell(String script) {
 		InputStream ins = null;
 		try {
