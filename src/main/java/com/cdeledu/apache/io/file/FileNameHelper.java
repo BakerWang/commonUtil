@@ -30,8 +30,7 @@ public class FileNameHelper extends FilenameUtils {
 	 * @return：String 返回类型
 	 */
 	public static String getRealPath(HttpServletRequest request) {
-		return request.getSession().getServletContext()
-				.getRealPath("/../website/uploadFile/")
+		return request.getSession().getServletContext().getRealPath("/../website/uploadFile/")
 				+ File.separator;
 	}
 
@@ -44,9 +43,20 @@ public class FileNameHelper extends FilenameUtils {
 	 * @return：String 返回类型
 	 */
 	public static String getImagePath(HttpServletRequest request) {
-		return request.getSession().getServletContext()
-				.getRealPath("/../website/images/")
+		return request.getSession().getServletContext().getRealPath("/../website/images/")
 				+ File.separator;
+	}
+
+	/**
+	 * @方法描述: 获取文件的扩展名
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年8月23日 下午8:26:48
+	 * @param fileName
+	 *            文件路径或者文件名
+	 * @return
+	 */
+	public static String getFileExt(String fileName) {
+		return fileName.substring(fileName.lastIndexOf('.'), fileName.length());
 	}
 	/*-------------------------- 公有方法 end   -------------------------------*/
 }
