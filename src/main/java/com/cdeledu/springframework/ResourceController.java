@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.cdeledu.application.commons.ConfigUtil;
+import com.cdeledu.appConfig.ConfigUtil;
 
 /**
  * @类描述:资源(文件的上传、下载)控制类

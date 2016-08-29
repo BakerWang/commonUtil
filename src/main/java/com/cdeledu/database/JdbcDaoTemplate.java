@@ -2,7 +2,7 @@ package com.cdeledu.database;
 
 import java.text.MessageFormat;
 
-import com.cdeledu.application.commons.ConfigUtil;
+import com.cdeledu.appConfig.ConfigUtil;
 
 public class JdbcDaoTemplate {
 	/*-------------------------- 私有属性 begin -------------------------------*/

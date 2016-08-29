@@ -5,7 +5,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Locale;
 
-import com.cdeledu.application.commons.ConstantHelper;
+import com.cdeledu.Constant.ConstantHelper;
 
 /**
  * @描述: 消息体类型(内容类型) <br>

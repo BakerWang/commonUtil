@@ -27,8 +27,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 
+import com.cdeledu.Constant.ConstantHelper;
 import com.cdeledu.apache.collection.MapUtilHelper;
-import com.cdeledu.application.commons.ConstantHelper;
 import com.cdeledu.exception.ExceptionHelper;
 import com.cdeledu.exception.RuntimeExceptionHelper;
 import com.cdeledu.network.common.UrlHelper;

@@ -33,8 +33,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
-import com.cdeledu.application.properties.PropertyHelperUtils;
-import com.cdeledu.datetime.DateUtilHelper;
+import com.cdeledu.apache.lang.DateUtilHelper;
+import com.cdeledu.appConfig.properties.PropertyHelperUtils;
 import com.cdeledu.swing.util.GuiUtils;
 
 /**

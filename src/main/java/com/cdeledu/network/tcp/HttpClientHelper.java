@@ -20,9 +20,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
-import com.cdeledu.application.commons.ClassUtilHelper;
 import com.cdeledu.exception.ExceptionHelper;
 import com.cdeledu.network.common.model.HttpHeaders;
+import com.cdeledu.reflection.ClassUtilHelper;
 
 /**
  * 

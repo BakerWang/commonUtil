@@ -11,7 +11,7 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import com.cdeledu.application.commons.ConstantHelper;
+import com.cdeledu.Constant.ConstantHelper;
 import com.cdeledu.network.common.URLEncodingUtil;
 import com.cdeledu.network.tcp.HttpURLConnHelper;
 import com.cdeledu.openplatform.baidu.model.BaiduMusic;

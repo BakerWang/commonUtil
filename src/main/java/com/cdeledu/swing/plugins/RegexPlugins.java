@@ -31,7 +31,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.cdeledu.application.properties.PropertyHelperUtils;
+import com.cdeledu.appConfig.properties.PropertyHelperUtils;
 import com.cdeledu.swing.services.GuiJPanel;
 import com.cdeledu.swing.util.GuiUtils;
 

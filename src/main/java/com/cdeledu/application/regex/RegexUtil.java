@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.cdeledu.application.properties.PropertyHelperUtils;
+import com.cdeledu.appConfig.properties.PropertyHelperUtils;
 
 /**
  * @描述: 对字符串按照常用规则进行验证的工具类(正则表达式)

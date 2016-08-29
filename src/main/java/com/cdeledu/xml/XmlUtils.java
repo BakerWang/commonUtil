@@ -29,8 +29,8 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.cdeledu.Constant.ConstantHelper;
 import com.cdeledu.apache.lang.StringUtilHelper;
-import com.cdeledu.application.commons.ConstantHelper;
 import com.cdeledu.exception.RuntimeExceptionHelper;
 
 /**

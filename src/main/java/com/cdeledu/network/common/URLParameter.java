@@ -1,6 +1,6 @@
 package com.cdeledu.network.common;
 
-import com.cdeledu.application.commons.ConstantHelper;
+import com.cdeledu.Constant.ConstantHelper;
 import com.cdeledu.network.common.model.NameValue;
 
 /**

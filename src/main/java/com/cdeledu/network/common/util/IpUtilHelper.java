@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.cdeledu.application.commons.ConfigUtil;
+import com.cdeledu.appConfig.ConfigUtil;
 import com.cdeledu.application.regex.RegexUtil;
 import com.cdeledu.network.common.UrlHelper;
 import com.cdeledu.network.tcp.HttpURLConnHelper;
