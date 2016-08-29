@@ -29,7 +29,7 @@ import com.mysql.jdbc.Statement;
  * @version: V2.0
  * @history:
  */
-public class DataBaseUtil {
+public class DataTableHelper {
 	/*--------------------------私有属性 start-------------------------------*/
 	private final static String DEFAULT_DB_INIT_PATH = "datasource/initDatabase.sql";
 	private static String dbUrl;
@@ -53,7 +53,7 @@ public class DataBaseUtil {
 
 	/*--------------------------私有属性 end-------------------------------*/
 	/*--------------------------私有方法 start-------------------------------*/
-	private DataBaseUtil() {
+	private DataTableHelper() {
 		// 非可实例化类
 	}
 
@@ -83,7 +83,8 @@ public class DataBaseUtil {
 	 * @return：void 返回类型
 	 */
 	public static void initDataBase() {
-		String rootPath = DataBaseUtil.class.getClassLoader().getResource(DEFAULT_DB_INIT_PATH).getPath();
+		String rootPath = DataTableHelper.class.getClassLoader().getResource(DEFAULT_DB_INIT_PATH)
+				.getPath();
 
 		// 从SQL文件中读取SQL语句，每行一条，末尾没有分号
 		List<String> sqlList = new ArrayList<String>();
@@ -110,7 +111,7 @@ public class DataBaseUtil {
 
 		// 数据库配置文件
 		try {
-			Statement st = (Statement) DataBaseUtil.getConnection().createStatement();
+			Statement st = (Statement) DataTableHelper.getConnection().createStatement();
 			for (String sql : sqlList) {
 				System.err.println("执行语句是：" + sql);
 				st.executeUpdate(sql);
@@ -132,7 +133,8 @@ public class DataBaseUtil {
 	 * @throws Exception
 	 * @return：void 返回类型
 	 */
-	public static void closeAll(Connection conn, ResultSet rs, Statement st, PreparedStatement ps) throws Exception {
+	public static void closeAll(Connection conn, ResultSet rs, Statement st, PreparedStatement ps)
+			throws Exception {
 		if (rs != null) {
 			rs.close();
 		}
@@ -272,9 +274,6 @@ public class DataBaseUtil {
 			}
 		}
 		return resultList;
-	}
-
-	public static void main(String[] args) {
 	}
 	/*--------------------------共有方法 end-------------------------------*/
 }
