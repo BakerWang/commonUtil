@@ -15,7 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.cdeledu.appConfig.ConfigUtil;
-import com.cdeledu.system.JavaRuntimeInfo;
+import com.cdeledu.device.JavaRuntimeInfo;
 
 /**
  * @描述:

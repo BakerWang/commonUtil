@@ -1,4 +1,4 @@
-package com.cdeledu.system;
+package com.cdeledu.device;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

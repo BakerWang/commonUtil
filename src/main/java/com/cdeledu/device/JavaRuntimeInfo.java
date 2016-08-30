@@ -1,4 +1,4 @@
-package com.cdeledu.system;
+package com.cdeledu.device;
 
 import org.apache.commons.lang3.StringUtils;
 

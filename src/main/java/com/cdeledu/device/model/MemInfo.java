@@ -1,4 +1,4 @@
-package com.cdeledu.system.model;
+package com.cdeledu.device.model;
 
 /**
  * @类描述: 内存信息封装.单位为MF

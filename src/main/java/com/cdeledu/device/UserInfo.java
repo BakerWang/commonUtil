@@ -1,4 +1,4 @@
-package com.cdeledu.system;
+package com.cdeledu.device;
 
 /**
  * @类描述: 当前用户的信息

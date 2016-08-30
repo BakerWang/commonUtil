@@ -1,4 +1,4 @@
-package com.cdeledu.system;
+package com.cdeledu.device;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 
-import com.cdeledu.system.model.MemInfo;
+import com.cdeledu.device.model.MemInfo;
 
 import sun.misc.BASE64Encoder;
 
@@ -23,7 +23,6 @@ import sun.misc.BASE64Encoder;
  * @创建日期: 2016年1月23日 上午12:43:52
  * @版本: V1.0
  * @since: JDK 1.7
- * @see <a href="">TODO(连接内容简介)</a>
  */
 @SuppressWarnings("restriction")
 public class ServerUtils {
