@@ -4,7 +4,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.cdeledu.webCrawler.util.WebCrawler;
+import com.cdeledu.webCrawler.crawler.util.WebCrawler;
 
 /**
  * @类描述: 利用网络爬虫端抓取数据

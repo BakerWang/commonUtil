@@ -1,4 +1,4 @@
-package com.cdeledu.webCrawler.util;
+package com.cdeledu.webCrawler.crawler.util;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

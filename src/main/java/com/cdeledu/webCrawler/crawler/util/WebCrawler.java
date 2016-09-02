@@ -1,4 +1,4 @@
-package com.cdeledu.webCrawler.util;
+package com.cdeledu.webCrawler.crawler.util;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

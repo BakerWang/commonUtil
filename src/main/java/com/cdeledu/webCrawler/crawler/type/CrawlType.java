@@ -1,4 +1,4 @@
-package com.cdeledu.webCrawler.type;
+package com.cdeledu.webCrawler.crawler.type;
 
 /**
  * @类描述: 网络爬虫枚举类型
