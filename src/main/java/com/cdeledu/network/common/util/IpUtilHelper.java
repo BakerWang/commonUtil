@@ -256,7 +256,7 @@ public class IpUtilHelper {
 		}
 		return hostAddress;
 	}
-	
+
 	/**
 	 * 
 	 * @方法描述: 设置代理IP:设置于http请求中
@@ -266,8 +266,8 @@ public class IpUtilHelper {
 	public static void setProxyIp() {
 		try {
 			List<String> ipList = Lists.newArrayList();
-			BufferedReader proxyIpReader = new BufferedReader(
-					new InputStreamReader(IpUtilHelper.class.getResourceAsStream("/ip/proxyip.txt")));
+			BufferedReader proxyIpReader = new BufferedReader(new InputStreamReader(
+					IpUtilHelper.class.getResourceAsStream("/ip/proxyip.txt")));
 			String ip = "";
 			while ((ip = proxyIpReader.readLine()) != null) {
 				ipList.add(ip);
@@ -294,6 +294,48 @@ public class IpUtilHelper {
 			setProxyIp();
 		}
 	}
-	
+
+	/**
+	 * @方法描述: 在线查询IP工具
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年9月9日 下午4:58:57
+	 * @param ip
+	 * @param code
+	 *            :查询结果 0:成功;
+	 * @param country
+	 *            :国家
+	 * @param country_id
+	 *            :国家代码
+	 * @param area
+	 *            :地区
+	 * @param area_id
+	 *            :地区代码
+	 * @param region
+	 *            :省
+	 * @param region_id
+	 *            :省代码
+	 * @param city
+	 *            : 城市
+	 * @param city_id
+	 *            :城市代码
+	 * @param county
+	 *            :县
+	 * @param county_id
+	 *            :县代码
+	 * @param isp
+	 *            :isp
+	 * @param isp_id:isp代码
+	 * @param ip
+	 * @return
+	 */
+	public static final String getIpInfo(String ip) {
+		String url = "http://www.bejson.com/api/bejson/ipinfo.php?ip=%s";
+		String result = "";
+		try {
+			result = HttpURLConnHelper.sendGetRequest(String.format(url, ip));
+		} catch (Exception e) {
+		}
+		return result;
+	}
 	/** --------------------------公有方法 end------------------------------- */
 }
