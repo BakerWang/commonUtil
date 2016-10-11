@@ -11,6 +11,8 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cdeledu.Constant.ConstantHelper;
@@ -26,7 +28,7 @@ import com.cdeledu.Constant.ConstantHelper;
  */
 public class FileUtilHelper extends FileUtils {
 	/** -------------------------- 属性 start ------------------------------- */
-
+	private static final Logger logger = LoggerFactory.getLogger(FileUtilHelper.class);
 	/** -------------------------- 属性 end ------------------------------- */
 	/** -------------------------- 私有方法 start ------------------------------- */
 	
@@ -233,5 +235,39 @@ public class FileUtilHelper extends FileUtils {
 		}
 		return fileContent;
 	}
+	
+	/**
+	 * @方法描述: 删除文件夹以及其子文件
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年10月11日 下午2:35:00
+	 * @param folder
+	 * @return
+	 */
+	public static boolean deleteFolder(File folder) {
+		return deleteFolderContents(folder) && folder.delete();
+	}
 
+	/**
+	 * @方法描述: 遍历删除文件夹的文件,但保留文件夹
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年10月11日 下午2:37:24
+	 * @param folder
+	 * @return
+	 */
+	public static boolean deleteFolderContents(File folder) {
+		logger.debug("Deleting content of: " + folder.getAbsolutePath());
+		File[] files = folder.listFiles();
+		for (File file : files) {
+			if (file.isFile()) {
+				if (!file.delete()) {
+					return false;
+				}
+			} else {
+				if (!deleteFolder(file)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 }
