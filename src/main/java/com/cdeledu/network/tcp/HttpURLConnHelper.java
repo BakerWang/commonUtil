@@ -49,8 +49,7 @@ import com.cdeledu.network.common.model.ProxyBean;
  * @version: V1.2
  */
 public class HttpURLConnHelper {
-	// protected static Logger logger = Logger.getLogger(this.);
-	protected static Logger log = Logger.getLogger(HttpURLConnHelper.class.getName());
+	protected static Logger logger = Logger.getLogger(HttpURLConnHelper.class.getName());
 	/** 异常原因 */
 	private static String IO_EXCEPTION_MEG = "Url无法正常连接,请检查是否网络连接正常";
 	// 定义数据分隔线
@@ -185,13 +184,14 @@ public class HttpURLConnHelper {
 				}
 				result = new String(jsonBytes, charset);
 			} else {
-				log.log(Level.ALL, IO_EXCEPTION_MEG);
+				logger.log(Level.ALL, IO_EXCEPTION_MEG);
 				throw new RuntimeException(IO_EXCEPTION_MEG);
 
 			}
 
-			System.out.println("---> get to: " + url);
-			System.out.println("---> data is: " + parameters);
+			logger.log(Level.INFO, "---> post to: "+url);
+			logger.log(Level.INFO, "---> data is: "+parameters);
+			logger.log(Level.INFO, "---> back data is: "+url);
 
 		} catch (Exception e) {
 			ExceptionHelper.catchHttpUtilException(e, url);
