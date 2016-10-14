@@ -51,11 +51,15 @@ import com.cdeledu.network.common.model.ProxyBean;
 public class HttpURLConnHelper {
 	protected static Logger logger = Logger.getLogger(HttpURLConnHelper.class.getName());
 	/** 异常原因 */
-	private static String IO_EXCEPTION_MEG = "Url无法正常连接,请检查是否网络连接正常";
+	private static String IO_EXCEPTION_MEG = "Url无法正常连接,请检查是否网络连接正常或者请求地址不存在";
 	// 定义数据分隔线
 	private static final String BOUNDARY = "---------7d4a6d158c9";
 	private static final String POST_HTTP = HttpMethod.POST.getValue();
 	private static final String GET_HTTP = HttpMethod.GET.getValue();
+	private static URLConnection urlConn = null;
+	/** URL连结对象。 */
+	private static HttpURLConnection httpConn = null;
+	private static URL realUrl = null;
 
 	/*--------------------------私有方法 start-------------------------------*/
 	/** 转码 */
@@ -69,138 +73,143 @@ public class HttpURLConnHelper {
 		return str;
 	}
 
-	/** HttpURLConnection的Post、Get访问请求参数设置 */
-	private static HttpURLConnection initConnection(String url, String RequestMethod, boolean isproxy,
-			ProxyBean proxyBean) {
-		URLConnection urlConn = null;
-		HttpURLConnection httpUrlConnection = null;
+	/**
+	 * @方法描述: 初始化连接相关信息的Post、Get访问请求参数设置
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年10月12日 上午7:53:09
+	 * @param url
+	 *            请求地址
+	 * @param RequestMethod
+	 *            请求方法
+	 * @param isproxy
+	 *            是否代理
+	 * @param proxyBean
+	 *            若是代理，代理参数配置
+	 * @return
+	 */
+	private static HttpURLConnection initConn(String url, String ReqMethod, boolean isproxy,
+			ProxyBean proxy) throws Exception {
+
 		if (StringUtils.isBlank(url)) {
 			throw new RuntimeExceptionHelper("请求的URL不能为空");
 		}
-		try {
-			// 打开HttpURLConnection
-			URL realUrl = new URL(url);
-			if (isproxy) {
-				Proxy proxy = new Proxy(Proxy.Type.HTTP,
-						new InetSocketAddress(proxyBean.getHost(), proxyBean.getPort()));
+		// 打开HttpURLConnection
+		realUrl = new URL(url);
+		if (isproxy) {
+			if (null != proxy) {
+				Proxy newProxy = new Proxy(Proxy.Type.HTTP,
+						new InetSocketAddress(proxy.getHost(), proxy.getPort()));
 
-				Authenticator.setDefault(new BasicAuthenticator(proxyBean.getUserName(), proxyBean.getPassword()));
-				urlConn = realUrl.openConnection(proxy);
+				Authenticator.setDefault(
+						new BasicAuthenticator(proxy.getUserName(), proxy.getPassword()));
+				urlConn = realUrl.openConnection(newProxy);
 			} else {
 				urlConn = realUrl.openConnection();
 			}
+		} else {
+			urlConn = realUrl.openConnection();
+		}
 
-			/** 设置http头通用的请求属性 */
-			urlConn.setRequestProperty(HttpHeaders.ACCEPT, "*/*");
-			urlConn.setRequestProperty(HttpHeaders.CONNECTION, "Keep-Alive");
-			// 设置 HttpURLConnection的字符编码,从而避免出现乱码
-			urlConn.setRequestProperty(HttpHeaders.ACCEPT_CHARSET, "utf-8");
-			// 浏览页面的访问者在用什么操作系统(包括版本号)、浏览器(包括版本号)等
-			urlConn.setRequestProperty(HttpHeaders.USER_AGENT,
-					"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+		/** 设置http头通用的请求属性 */
+		urlConn.setRequestProperty(HttpHeaders.ACCEPT, "*/*");
+		urlConn.setRequestProperty(HttpHeaders.CONNECTION, "Keep-Alive");
+		// 请求表示提交内容类型或返回返回内容的MIME类型
+		urlConn.setRequestProperty(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded");
+		// 设置 HttpURLConnection的字符编码,从而避免出现乱码
+		urlConn.setRequestProperty(HttpHeaders.ACCEPT_CHARSET, "utf-8");
+		// 浏览页面的访问者在用什么操作系统(包括版本号)、浏览器(包括版本号)等
+		urlConn.setRequestProperty(HttpHeaders.USER_AGENT,
+				"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0 Hutool");
 
-			httpUrlConnection = (HttpURLConnection) urlConn;
+		httpConn = (HttpURLConnection) urlConn;
 
-			boolean caches = true;
-			/** 发送POST请求必须设置如下所示 */
-			if ("POST".equalsIgnoreCase(RequestMethod)) {
-				/**
-				 * 1.设置是否向httpUrlConnection输出,默认情况下是false<BR/>
-				 * 2.是否打开输出流 true|false,表示向服务器写数据
-				 */
-				httpUrlConnection.setDoOutput(true);
-				/**
-				 * 1.设置是否从httpUrlConnection读入,默认情况下是true<br/>
-				 * 2.是否打开输入流true|false,表示从服务器获取数据
-				 */
-				httpUrlConnection.setDoInput(true);
-				/**
-				 * 1.是否缓存true|false<BR/>
-				 * 2.Post 请求不能使用缓存
-				 */
-				caches = false;
-			}
-			// 是否缓存true|false
-			httpUrlConnection.setUseCaches(caches);
-			// 设置连接超时时间，单位毫秒
-			httpUrlConnection.setConnectTimeout(100000);
-			// 设置读取数据超时时间，单位毫秒
-			httpUrlConnection.setReadTimeout(100000);
+		boolean caches = true;
+		/** 发送POST请求必须设置如下所示 */
+		if ("POST".equalsIgnoreCase(ReqMethod)) {
+			/**
+			 * 1.设置是否向httpUrlConnection输出,默认情况下是false<BR/>
+			 * 2.是否打开输出流 true|false,表示向服务器写数据
+			 */
+			httpConn.setDoOutput(true);
+			/**
+			 * 1.设置是否从httpUrlConnection读入,默认情况下是true<br/>
+			 * 2.是否打开输入流true|false,表示从服务器获取数据
+			 */
+			httpConn.setDoInput(true);
+			/**
+			 * 1.是否缓存true|false<BR/>
+			 * 2.Post 请求不能使用缓存
+			 */
+			caches = false;
+		}
+		// 是否缓存true|false
+		httpConn.setUseCaches(caches);
+		// 设置连接超时时间，单位毫秒
+		httpConn.setConnectTimeout(10 * 1000);
+		// 设置读取数据超时时间，单位毫秒
+		httpConn.setReadTimeout(10 * 1000);
 
-			// 设置 HttpURLConnection的请求方式-->POST|GET,默认是GET
-			if (POST_HTTP.equalsIgnoreCase(RequestMethod)) {
-				httpUrlConnection.setRequestMethod(POST_HTTP);
-			} else if (GET_HTTP.equalsIgnoreCase(RequestMethod)) {
-				httpUrlConnection.setRequestMethod(GET_HTTP);
-			}
-
-		} catch (Exception e) {
-			ExceptionHelper.catchHttpUtilException(e, null);
+		// 设置 HttpURLConnection的请求方式-->POST|GET,默认是GET
+		if (POST_HTTP.equalsIgnoreCase(ReqMethod)) {
+			httpConn.setRequestMethod(POST_HTTP);
+		} else if (GET_HTTP.equalsIgnoreCase(ReqMethod)) {
+			httpConn.setRequestMethod(GET_HTTP);
 		}
 
 		/** 参数配置必须要在connect之前完成 */
-		return httpUrlConnection;
+		return httpConn;
 	}
 
 	/** 利用 HttpURLConnection发送代理服务器的POST()方法的请求 */
-	private static String sendProxyRequest(String url, String parameters, boolean isproxy, ProxyBean proxy,
-			Charset charset) {
+	private static String sendProxyRequest(String url, String params, boolean isproxy,
+			ProxyBean proxy, Charset charset) throws Exception {
 		String result = "";// 响应内容
-		HttpURLConnection httpConn = null;
 		OutputStream outStrm = null;
 		InputStream is = null;
 
 		if (StringUtils.isEmpty(url)) {
-			ExceptionHelper.getExceptionHint("HttpURLConnHelper", "sendPostRequest", "targetUrl不能为空!");
+			ExceptionHelper.getExceptionHint("HttpURLConnHelper", "sendPostRequest",
+					"targetUrl不能为空!");
 		}
 
-		try {
-			httpConn = initConnection(url, POST_HTTP, isproxy, proxy);
+		httpConn = initConn(url, POST_HTTP, isproxy, proxy);
 
-			// 建立实际的连接
-			httpConn.connect();
+		// 建立实际的连接
+		httpConn.connect();
 
-			if (StringUtils.isNoneBlank(parameters)) {
-				// 现在通过输出流对象构建对象输出流对象，以实现输出可序列化的对象。
-				outStrm = httpConn.getOutputStream();
+		if (StringUtils.isNoneBlank(params)) {
+			// 现在通过输出流对象构建对象输出流对象，以实现输出可序列化的对象。
+			outStrm = httpConn.getOutputStream();
 
-				// 向对象输出流写出数据，这些数据将存到内存缓冲区中
-				outStrm.write(parameters.getBytes("UTF-8"));
-				// 刷新对象输出流，将任何字节都写入潜在的流中(此处为ObjectOutputStream)
-				outStrm.flush();
-				// 关闭流对象
-				outStrm.close();
-			}
-
-			// HTTP 状态码(只有是200的时候才说明请求成功,其余皆失败)
-			if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-				// 将返回的输入流转换成字符串
-				is = httpConn.getInputStream();
-				int size = is.available();
-				byte[] jsonBytes = new byte[size];
-				is.read(jsonBytes);
-				if (StringUtils.isEmpty(charset.name())) {
-					charset = ConstantHelper.UTF_8;
-				}
-				result = new String(jsonBytes, charset);
-			} else {
-				logger.log(Level.ALL, IO_EXCEPTION_MEG);
-				throw new RuntimeException(IO_EXCEPTION_MEG);
-
-			}
-
-			logger.log(Level.INFO, "---> post to: "+url);
-			logger.log(Level.INFO, "---> data is: "+parameters);
-			logger.log(Level.INFO, "---> back data is: "+url);
-
-		} catch (Exception e) {
-			ExceptionHelper.catchHttpUtilException(e, url);
-		} finally {
-			// 释放资源
-			IOUtils.closeQuietly(outStrm);
-			IOUtils.closeQuietly(is);
-			IOUtils.close(httpConn);
+			// 向对象输出流写出数据，这些数据将存到内存缓冲区中
+			outStrm.write(params.getBytes("UTF-8"));
+			// 刷新对象输出流，将任何字节都写入潜在的流中(此处为ObjectOutputStream)
+			outStrm.flush();
+			// 关闭流对象
+			outStrm.close();
 		}
+
+		// HTTP 状态码(只有是200的时候才说明请求成功,其余皆失败)
+		if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+			// 将返回的输入流转换成字符串
+			is = httpConn.getInputStream();
+			int size = is.available();
+			byte[] jsonBytes = new byte[size];
+			is.read(jsonBytes);
+			if (StringUtils.isEmpty(charset.name())) {
+				charset = ConstantHelper.UTF_8;
+			}
+			result = new String(jsonBytes, charset);
+		} else {
+			logger.log(Level.ALL, IO_EXCEPTION_MEG);
+			throw new RuntimeException(IO_EXCEPTION_MEG);
+
+		}
+
+		logger.log(Level.INFO, "---> post to: " + url);
+		logger.log(Level.INFO, "---> data is: " + params);
+		logger.log(Level.INFO, "---> back data is: " + url);
+
 		return result;
 	}
 
@@ -231,16 +240,16 @@ public class HttpURLConnHelper {
 	 */
 	public static String sendGetRequest(String url, Map<String, String> headerMap) {
 		String result = "";
-		HttpURLConnection httpConn = null;
 		BufferedReader reader = null;
 
 		if (StringUtils.isEmpty(url)) {
-			ExceptionHelper.getExceptionHint("HttpURLConnHelper", "sendGetRequest", "targetUrl不能为空!");
+			ExceptionHelper.getExceptionHint("HttpURLConnHelper", "sendGetRequest",
+					"targetUrl不能为空!");
 		}
 
 		try {
 
-			httpConn = initConnection(url, HttpMethod.GET.getValue(), false, null);
+			httpConn = initConn(url, HttpMethod.GET.getValue(), false, null);
 			if (MapUtilHelper.isNotEmpty(headerMap)) {
 				for (Map.Entry<String, String> entry : headerMap.entrySet()) {
 					httpConn.setRequestProperty(entry.getKey(), entry.getValue());
@@ -253,7 +262,8 @@ public class HttpURLConnHelper {
 			// HTTP 状态码(只有是200的时候才说明请求成功,其余皆失败)
 			if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
 				// 定义 BufferedReader输入流来读取URL的响应
-				reader = new BufferedReader(new InputStreamReader(httpConn.getInputStream(), "utf-8"));
+				reader = new BufferedReader(
+						new InputStreamReader(httpConn.getInputStream(), "utf-8"));
 				String line;
 				StringBuffer sb = new StringBuffer();
 
@@ -285,7 +295,7 @@ public class HttpURLConnHelper {
 	 *            发送请求的 URL(服务器地址)
 	 * @return 所代表远程资源的响应结果
 	 */
-	public static String sendPostRequest(String url, Charset charset) {
+	public static String sendPostRequest(String url, Charset charset) throws Exception {
 		return sendProxyRequest(url, null, false, null, charset);
 	}
 
@@ -299,8 +309,9 @@ public class HttpURLConnHelper {
 	 *            是否使用代理模式
 	 * @return 所代表远程资源的响应结果
 	 */
-	public static String sendPostRequest(String url, String parameters, Charset charset) {
-		return sendProxyRequest(url, parameters, false, null, charset);
+	public static String sendPostRequest(String url, String params, Charset charset)
+			throws Exception {
+		return sendProxyRequest(url, params, false, null, charset);
 	}
 
 	/**
@@ -312,9 +323,10 @@ public class HttpURLConnHelper {
 	 *            请求参数
 	 * @return
 	 */
-	public static String sendPostRequest(String url, Map<String, String> paramsMap) {
+	public static String sendPostRequest(String url, Map<String, String> paramsMap)
+			throws Exception {
 		String parameters = UrlHelper.formatParameters(paramsMap);
-		return sendPostRequest(url, parameters,null);
+		return sendPostRequest(url, parameters, null);
 	}
 
 	/**
@@ -334,8 +346,8 @@ public class HttpURLConnHelper {
 	 *            http访问要使用的代理服务器的密码
 	 * @return
 	 */
-	public static String sendPostRequest(String url, String parameters, String host, int port, String userName,
-			String password, Charset charset) {
+	public static String sendPostRequest(String url, String parameters, String host, int port,
+			String userName, String password, Charset charset) throws Exception {
 		ProxyBean proxy = new ProxyBean();
 		proxy.setHost(host);
 		proxy.setPort(port);
@@ -357,19 +369,18 @@ public class HttpURLConnHelper {
 	public static String FileUpload(String url, File file) {
 		if (!file.exists())
 			return null;
-		HttpURLConnection conn = null; // URL连结对象。
 		BufferedReader br = null; // 请求后的返回信息的读取对象。
 		OutputStream out = null;
 		DataInputStream datain = null;
 		try {
-			conn = (HttpURLConnection) new URL(url).openConnection();
-			conn.setUseCaches(false);
-			conn.setDoOutput(true);
-			conn.setDoInput(true);
-			conn.setRequestMethod(POST_HTTP);
-			conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + BOUNDARY);
+			httpConn = (HttpURLConnection) new URL(url).openConnection();
+			httpConn.setUseCaches(false);
+			httpConn.setDoOutput(true);
+			httpConn.setDoInput(true);
+			httpConn.setRequestMethod(POST_HTTP);
+			httpConn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + BOUNDARY);
 
-			out = new DataOutputStream(conn.getOutputStream());
+			out = new DataOutputStream(httpConn.getOutputStream());
 			// 定义最后数据分隔线
 			byte[] end_data = ("\r\n--" + BOUNDARY + "--\r\n").getBytes();
 			/**
@@ -379,7 +390,8 @@ public class HttpURLConnHelper {
 			sb.append("--");
 			sb.append(BOUNDARY);
 			sb.append("\r\n");
-			sb.append("Content-Disposition: form-data;name=\"file\";filename=\"" + file.getName() + "\"\r\n");
+			sb.append("Content-Disposition: form-data;name=\"file\";filename=\"" + file.getName()
+					+ "\"\r\n");
 			/**
 			 * /获取文件的上传类型
 			 */
@@ -398,10 +410,10 @@ public class HttpURLConnHelper {
 			out.flush();
 			out.close();
 
-			br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+			br = new BufferedReader(new InputStreamReader(httpConn.getInputStream(), "UTF-8"));
 
 		} catch (FileNotFoundException fe) {
-			InputStream err = ((HttpURLConnection) conn).getErrorStream();
+			InputStream err = ((HttpURLConnection) httpConn).getErrorStream();
 			if (err == null)
 				br = new BufferedReader(new InputStreamReader(err));
 		} catch (IOException ie) {
@@ -424,14 +436,44 @@ public class HttpURLConnHelper {
 			ioe.getStackTrace();
 		} finally {
 			IOUtils.closeQuietly(br);
-			IOUtils.close(conn);
+			IOUtils.close(httpConn);
 		}
 		return response.toString();
 	}
 
+	/**
+	 * @方法描述: 检测当前URL是否可连接或是否有效,最多连接网络 5 次, 如果 5 次都不成功，视为该地址不可用
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年10月12日 上午8:20:35
+	 * @param url
+	 *            指定URL网络地址
+	 * @return
+	 */
+	public static boolean isConnect(String url) {
+		int count = 0;
+		if (StringUtils.isEmpty(url))
+			return false;
+
+		while (count < 5) {
+			try {
+				realUrl = new URL(url);
+				httpConn = (HttpURLConnection) realUrl.openConnection();
+				if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+					return true;
+				}
+				break;
+			} catch (Exception e) {
+				count++;
+				continue;
+			}
+		}
+		return false;
+	}
+
 	public static void main(String[] args) {
 		String url = "http://www.capec.org.cn/cdel/CAPEC-RM0400025.xml";
-		System.out.println(sendGetRequest(url, null));
+		System.out.println(isConnect(url));
+		// System.out.println(sendGetRequest(url, null));
 	}
 	/*--------------------------公有方法 end-------------------------------*/
 }

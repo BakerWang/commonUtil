@@ -88,20 +88,25 @@ public final class BankCordHelperUtils {
 		}
 		// 前15或18位
 		int cardLength = cardNumber.length() - 1;
-		return cardNumber.charAt(cardLength) == getBankCardCheckCode(cardNumber.substring(0, cardLength));
+		return cardNumber
+				.charAt(cardLength) == getBankCardCheckCode(cardNumber.substring(0, cardLength));
 	}
 
 	public static void main(String[] args) {
-		String result = HttpURLConnHelper.sendPostRequest(YINHANGKADATA, "card=955888020016888888", "117.135.251.133",
-				83, "", "", ConstantHelper.GBK);
-
-		Document jsoup = Jsoup.parse(result);
-		Element home = jsoup.select("div.home_so").select("div.home_show").first();
-		Elements element = home.select("p");
-		if (null != element.get(0).text() && StringUtils.isNoneBlank(element.get(1).text())) {
-			System.out.println(element.get(1).text());
-			System.out.println(element.get(2).text());
-			System.out.println(element.get(3).text());
+		String result = null;
+		try {
+			result = HttpURLConnHelper.sendPostRequest(YINHANGKADATA, "card=955888020016888888",
+					"117.135.251.133", 83, "", "", ConstantHelper.GBK);
+			Document jsoup = Jsoup.parse(result);
+			Element home = jsoup.select("div.home_so").select("div.home_show").first();
+			Elements element = home.select("p");
+			if (null != element.get(0).text() && StringUtils.isNoneBlank(element.get(1).text())) {
+				System.out.println(element.get(1).text());
+				System.out.println(element.get(2).text());
+				System.out.println(element.get(3).text());
+			}
+		} catch (Exception e) {
 		}
+
 	}
 }
