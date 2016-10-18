@@ -323,7 +323,7 @@ public class HttpURLConnHelper {
 	 *            请求参数
 	 * @return
 	 */
-	public static String sendPostRequest(String url, Map<String, String> paramsMap)
+	public static String sendPostRequest(String url, Map<String, Object> paramsMap)
 			throws Exception {
 		String parameters = UrlHelper.formatParameters(paramsMap);
 		return sendPostRequest(url, parameters, null);

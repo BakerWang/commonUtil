@@ -39,7 +39,8 @@ public class IpUtilHelper {
 	/** 淘宝Ip查询接口 */
 	private final static String TAO_BAO_URL = "http://ip.taobao.com/service/getIpInfo.php?ip=%S";
 	/** API调试工具--接口地址 */
-	private final static String IP_LOOKUP_SERVICE = "http://apis.baidu.com/apistore/iplookupservice/iplookup?ip=%s";
+	private final static String IP_LOOKUP = "http://apis.baidu.com/apistore/iplookupservice/iplookup?";
+	private final static String IP_LOOKUP_SERVICE = IP_LOOKUP + "ip=%s";
 	private static Map<String, String> headerMap = new HashMap<String, String>();
 	static {
 		headerMap.put("apikey", ConfigUtil.getApiStoreAkValue());
@@ -144,7 +145,7 @@ public class IpUtilHelper {
 	 */
 	public static String getIpInfoBySinaUrl(String ip) {
 		if (RegexUtil.isIp(ip)) {
-			Map<String, String> paramsMap = new HashMap<String, String>();
+			Map<String, Object> paramsMap = new HashMap<String, Object>();
 			paramsMap.put("format", "json");
 			paramsMap.put("ip", ip);
 

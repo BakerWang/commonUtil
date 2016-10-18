@@ -65,6 +65,7 @@ public class UrlHelper implements Serializable {
 			urlWithParas.append(AND_SIGN);
 		}
 	}
+
 	/** -------------------------- 私有方法 end ------------------------------- */
 
 	/** -------------------------- 公有方法 begin ------------------------------- */
@@ -131,20 +132,26 @@ public class UrlHelper implements Serializable {
 	 *            参数所在的map;key是对名称，value是对值
 	 * @return 请求参数应该是 name1=value1&name2=value2 的形式
 	 */
-	public static String formatParameters(Map<String, String> paramsMap) {
+	public static String formatParameters(Map<String, Object> paramsMap) {
 		if (MapUtils.isEmpty(paramsMap)) {
 			return null;
 		}
+		Object key, val = null;
 
 		StringBuilder paras = new StringBuilder();
-		for (Entry<String, String> entry : paramsMap.entrySet()) {
-			if ((entry.getValue() == null) || (entry.getKey() == null)) {
+		for (Entry<String, Object> entry : paramsMap.entrySet()) {
+			key = entry.getKey();
+
+			if (key == null) {
 				continue;
 			}
-			if (entry.getValue().length() == 0) {
+			val = entry.getValue();
+			if ((val == null) || val.toString().length() == 0) {
 				continue;
 			}
-			paras.append(String.format("%s=%s", utf8Encode(entry.getKey()), utf8Encode(entry.getValue())));
+
+			paras.append(
+					String.format("%s=%s", utf8Encode(key.toString()), utf8Encode(val.toString())));
 			paras.append(AND_SIGN);
 		}
 		// 删除最后一个'&'
@@ -162,7 +169,7 @@ public class UrlHelper implements Serializable {
 	 *            参数所在的map;key是对名称，value是对值
 	 * @return url?name1=value1&name2=value2
 	 */
-	public static String formatParameters(String url, Map<String, String> paramsMap) {
+	public static String formatParameters(String url, Map<String, Object> paramsMap) {
 		String paramsUrl = formatParameters(paramsMap);
 
 		if (StringUtils.isEmpty(url)) {
@@ -190,7 +197,8 @@ public class UrlHelper implements Serializable {
 		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
 		try {
 			uc = (HttpURLConnection) url.openConnection();
-			uc.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows XP; DigExt)");
+			uc.setRequestProperty("User-Agent",
+					"Mozilla/4.0 (compatible; MSIE 5.0; Windows XP; DigExt)");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -207,7 +215,8 @@ public class UrlHelper implements Serializable {
 		try {
 
 			con = (HttpURLConnection) url.openConnection();
-			con.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows XP; DigExt)");
+			con.setRequestProperty("User-Agent",
+					"Mozilla/4.0 (compatible; MSIE 5.0; Windows XP; DigExt)");
 			con.setConnectTimeout(152000);
 			con.setReadTimeout(288000);
 			con.connect();
