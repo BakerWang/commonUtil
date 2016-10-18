@@ -51,7 +51,8 @@ public class ConfigUtil {
 	 * @param split
 	 * @return
 	 */
-	private static List<String> getConfigListByName(ResourceBundle resource, String name, String split) {
+	private static List<String> getConfigListByName(ResourceBundle resource, String name,
+			String split) {
 		return Arrays.asList(getConfigByName(resource, name).split(split));
 	}
 
@@ -119,14 +120,14 @@ public class ConfigUtil {
 	}
 
 	/**
-	 * @Title: getBaiduMapAkValue
-	 * @Description: 百度地图接口密钥
-	 * @author: 独泪了无痕
+	 * @方法描述: 百度地图接口密钥
+	 * @说明 其限制根据客户端的IP进行限制的,也就是说不管你创建多少个KEY,只要你从一个IP发出的请求,那么超过限制次数之后都会调用失败
+	 * @创建者: 皇族灬战狼
+	 * @更新时间: 2016年10月14日 下午6:44:23
 	 * @return
 	 */
 	public static final String getBaiduMapAkValue() {
-		List<String> resultList = getConfigListByName(CONFIG, "baidu_map_apikey", ",");
-		return RandomUtil.randomEle(resultList);
+		return getConfigByName(CONFIG, "baidu_map_apikey");
 	}
 
 	/**
@@ -136,7 +137,8 @@ public class ConfigUtil {
 	 * @return
 	 */
 	public static final Map<String, String> getBaiduTrans() {
-		List<String> resultList = Arrays.asList(getConfigByName(CONFIG, "baidu_trans_appId").split("-"));
+		List<String> resultList = Arrays
+				.asList(getConfigByName(CONFIG, "baidu_trans_appId").split("-"));
 		Map<String, String> resultMap = new HashMap<String, String>();
 		resultMap.put("appid", resultList.get(0));
 		resultMap.put("secretKey", resultList.get(1));
@@ -153,16 +155,6 @@ public class ConfigUtil {
 	public static final String getBaiduWeatherAkValue() {
 		List<String> resultList = getConfigListByName(CONFIG, "baidu_Weather_apikey", ",");
 		return RandomUtil.randomEle(resultList);
-	}
-
-	/**
-	 * @Title: getBaiduDictAkValue
-	 * @Description: 百度字典接口密钥
-	 * @author: 独泪了无痕
-	 * @return
-	 */
-	public static final String getBaiduDictAkValue() {
-		return getConfigByName(CONFIG, "baidu_dict_apikey");
 	}
 
 	/**
