@@ -15,10 +15,9 @@
 	<!-- ====================================================================== 
 		项目信息设置 -->
 	<!--项目的名称, Maven产生的文档用 -->
-	<name>javaCommonUtils</name>
+	<name>javaProjectCommonTools</name>
 	<!--项目主页的URL, Maven产生的文档用 -->
 	<url>https://github.com/dllwh/CommonUtils</url>
-	<!--项目的详细描述, Maven 产生的文档用 -->
 	<!--项目的详细描述, Maven 产生的文档用 -->
 	<description>Java开发中常用的工具类</description>
 	<inceptionYear>2016</inceptionYear>
