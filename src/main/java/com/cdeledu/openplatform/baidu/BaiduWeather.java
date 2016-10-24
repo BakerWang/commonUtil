@@ -38,7 +38,7 @@ class BaiduWeather {
 	/*-------------------------- 公有方法 begin -------------------------------*/
 	@SuppressWarnings("deprecation")
 	public static WeatherInfo getWeatherInfo(String cityName) {
-		Map<String, String> paramsMap = new HashMap<String, String>();
+		Map<String, Object> paramsMap = new HashMap<String, Object>();
 
 		// 保存全部的天气信息
 		WeatherInfo weatherInfo = new WeatherInfo();

@@ -8,17 +8,15 @@ import com.cdeledu.openplatform.baidu.util.PlaceSuggestionUtil;
 import com.cdeledu.openplatform.baidu.util.PlaceUtil;
 
 /**
- * @ClassName: BaiduMap
- * @Description: 百度地图工具类(调用百度地图接口)
- * @author: 独泪了无痕
- * @date: 2015年7月17日 下午1:37:25
- * @version: V1.0
+ * @类描述: 百度地图工具类(调用百度地图接口)
+ * @创建者: 独泪了无痕
+ * @创建时间: 2015年7月17日 下午1:37:25
+ * @更新时间: 2016年10月17日 下午2:08:33
+ * @版本: V1.3
  * @since: JDK 1.7
- * @see <a
- *      href="http://developer.baidu.com/map/index.php?title=webapi">百度地图Web服务API
- *      </a>
+ * @see <a href="http://developer.baidu.com/map/index.php?title=webapi">
+ *      百度地图Web服务API</a>
  */
-@SuppressWarnings("rawtypes")
 public class BaiduMap {
 	/**
 	 * @Title: SearchLocalByGeocoding_API
@@ -31,8 +29,7 @@ public class BaiduMap {
 	 *            纬度值
 	 * @return
 	 */
-	public static Map<String, Object> SearchLocalByGeocoding_API(String ak,
-			float lng, float lat) {
+	public static Map<String, Object> SearchLocalByGeocoding_API(String ak, float lng, float lat) {
 		return GeocodingUtil.SearchLocalByGeocodingAPI(ak, lng, lat);
 	}
 
@@ -45,8 +42,8 @@ public class BaiduMap {
 	 * @param city
 	 * @return
 	 */
-	public static LatitudeInfo SearchLatitudeByGeocoding_API(String ak,
-			String address, String city) {
+	public static LatitudeInfo SearchLatitudeByGeocoding_API(String ak, String address,
+			String city) {
 		return GeocodingUtil.SearchLatitudeByGeocodingAPI(ak, address, city);
 	}
 
@@ -60,9 +57,9 @@ public class BaiduMap {
 	 * @param region
 	 * @return
 	 */
-	public static Map SearchInfoByQueryKeyword(String ak, String query,
-			String page_num, String region) {
-		return PlaceUtil.SearchInfoByQueryKeyword(ak, query, page_num, region);
+	public static Map<String, Object> SearchInfoByQueryKeyword(String ak, String query,
+			Integer page_num, String region) {
+		return PlaceUtil.SearchInfoByQueryKeyword(ak, query, page_num, region, 2);
 	}
 
 	/**
@@ -78,10 +75,9 @@ public class BaiduMap {
 	 * @param radius
 	 * @return
 	 */
-	public static Map SearchInfoByLocationAndRadius(String ak, String query,
-			String page_num, float lng, float lat, int radius) {
-		return PlaceUtil.SearchInfoByLocationAndRadius(ak, query, page_num,
-				lng, lat, radius);
+	public static Map<String, Object> SearchInfoByLocationAndRadius(String ak, String query,
+			Integer page_num, float lng, float lat, int radius) {
+		return PlaceUtil.SearchInfoByLocationAndRadius(ak, query, page_num, lng, lat, radius, 2);
 	}
 
 	/**
@@ -92,8 +88,8 @@ public class BaiduMap {
 	 * @param uid
 	 * @return
 	 */
-	public static Map SearchInfoByPlaceDetail(String ak, String uid) {
-		return PlaceUtil.SearchInfoByPlaceDetail(ak, uid);
+	public static Map<String, Object> SearchInfoByPlaceDetail(String ak, String uid) {
+		return PlaceUtil.SearchInfoByPlaceDetail(ak, uid, 2);
 	}
 
 	/**
@@ -105,8 +101,8 @@ public class BaiduMap {
 	 * @param region
 	 * @return
 	 */
-	public static Map SearchAuxiliaryInfoByQueryKeyword(String ak,
-			String query, String region) {
+	public static Map<String, Object> SearchAuxiliaryInfoByQueryKeyword(String ak, String query,
+			String region) {
 		return PlaceSuggestionUtil.SearchInfoByQueryKeyword(ak, query, region);
 	}
 	/*-------------------------- 公有方法 end   -------------------------------*/

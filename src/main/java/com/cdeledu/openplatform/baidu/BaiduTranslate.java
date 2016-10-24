@@ -81,7 +81,7 @@ class BaiduTranslate {
 	private static List<String> parse(String content, String from, String to) {
 		List<String> resultList = new ArrayList<String>();
 
-		Map<String, String> paramMap = new HashMap<String, String>();
+		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("q", URLEncodingUtil.encoding(content, charser));
 		paramMap.put("from", from);
 		paramMap.put("to", to);

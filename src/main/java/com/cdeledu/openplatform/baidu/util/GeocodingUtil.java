@@ -64,7 +64,7 @@ public class GeocodingUtil {
 		LatitudeInfo info = new LatitudeInfo();
 
 		if (StringUtils.isNotBlank(address)) {
-			Map<String, String> paramsMap = new HashMap<String, String>();
+			Map<String, Object> paramsMap = new HashMap<String, Object>();
 			paramsMap.put("ak", ak);
 			paramsMap.put("output", "json");
 			paramsMap.put("address", address.trim().replace(" ", ""));
@@ -148,7 +148,7 @@ public class GeocodingUtil {
 		Map<String, Object> resultmap = new HashMap<String, Object>();
 		List<LocalInfo> resultList = new ArrayList<LocalInfo>();
 		try {
-			Map<String, String> paramsMap = new HashMap<String, String>();
+			Map<String, Object> paramsMap = new HashMap<String, Object>();
 			paramsMap.put("ak", ak);
 			paramsMap.put("pois", "1");
 			paramsMap.put("output", "json");

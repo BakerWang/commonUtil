@@ -57,7 +57,7 @@ public class PlaceSuggestionUtil {
 			region = "全国";
 		}
 		try {
-			Map<String, String> paramsMap = new HashMap<String, String>();
+			Map<String, Object> paramsMap = new HashMap<String, Object>();
 			paramsMap.put("ak", ak);
 			paramsMap.put("output", "json");
 			paramsMap.put("query", query);
