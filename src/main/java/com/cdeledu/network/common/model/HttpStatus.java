@@ -16,6 +16,7 @@ package com.cdeledu.network.common.model;
  * @version: V1.0
  * @since: JDK 1.7
  * @see <a href="http://tool.oschina.net/commons?type=5">HTTP状态码详解</a>
+ * @see <a href="http://tool.lu/httpcode/">http状态码 </a>
  * @see <a href=
  *      "http://www.cnblogs.com/lxinxuan/archive/2009/10/22/1588053.html">
  *      HTTP状态码大全</a>
