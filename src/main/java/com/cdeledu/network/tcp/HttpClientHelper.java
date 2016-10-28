@@ -63,7 +63,7 @@ public class HttpClientHelper {
 	/*-------------------------- 私有属性 end   -------------------------------*/
 	/*-------------------------- 私有方法 begin -------------------------------*/
 
-	private HttpClientHelper() {
+	public HttpClientHelper() {
 		httpClient = new DefaultHttpClient();
 	}
 
