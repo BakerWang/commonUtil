@@ -30,24 +30,30 @@ import com.mysql.jdbc.Statement;
  * @history:
  */
 public class DataTableHelper {
-	/*--------------------------私有属性 start-------------------------------*/
-	private final static String DEFAULT_DB_INIT_PATH = "datasource/initDatabase.sql";
+	/** ----------------------------------------------------- Fields start */
+	// 属性文件
+	private final static String INIT_PATH = "datasource/jdbc";
+	// 初始化SQL文件
+	private final static String INIT_SQL_PATH = "datasource/initDatabase.sql";
+	private static String rootPath = "";
 	private static String dbUrl;
 	private static String dbUserName;
 	private static String dbPassword;
 	private static String jdbcName;
 	private final static ResourceBundle jdbcBundle;
-
+	private static Connection conn = null;
+	/** ----------------------------------------------------- Fields end */
 	static {
-		jdbcBundle = ResourceBundle.getBundle("datasource/jdbc");
+		jdbcBundle = ResourceBundle.getBundle(INIT_PATH);
 		dbUrl = jdbcBundle.getString("database.dbUrl");
 		dbUserName = jdbcBundle.getString("database.dbUserName");
 		dbPassword = jdbcBundle.getString("database.dbPassword");
 		jdbcName = jdbcBundle.getString("database.jdbcName");
+		rootPath = DataTableHelper.class.getClassLoader().getResource(INIT_SQL_PATH).getPath();
 		try {
 			Class.forName(jdbcName);
 		} catch (ClassNotFoundException e) {
-			// e.printStackTrace();
+			e.printStackTrace();
 		}
 	}
 
@@ -57,23 +63,30 @@ public class DataTableHelper {
 		// 非可实例化类
 	}
 
+	/**
+	 * @方法描述: 获取数据库连接
+	 * @return
+	 * @throws SQLException
+	 */
+	private static Connection getConnection() throws SQLException {
+		return DriverManager.getConnection(dbUrl, dbUserName, dbPassword);
+	}
+
 	/*--------------------------私有方法 end-------------------------------*/
 	/*--------------------------共有方法 start-------------------------------*/
 
 	/**
-	 * 
-	 * @Title：getConnection
-	 * @Description：获取数据库连接
-	 * @return
-	 * @return：Connection 返回类型
+	 * @方法描述: 执行SQL
+	 * @param sqlList
+	 * @throws SQLException
 	 */
-	public static Connection getConnection() {
-		try {
-			Connection con = DriverManager.getConnection(dbUrl, dbUserName, dbPassword);
-			return con;
-		} catch (Exception e) {
-			throw new RuntimeException("数据连接失败", e);
+	public static void executeSql(List<String> sqlList) throws SQLException {
+		conn = getConnection();
+		Statement st = (Statement) conn.createStatement();
+		for (String sql : sqlList) {
+			st.executeUpdate(sql);
 		}
+		closeAll(conn, null, null, null);
 	}
 
 	/**
@@ -83,8 +96,6 @@ public class DataTableHelper {
 	 * @return：void 返回类型
 	 */
 	public static void initDataBase() {
-		String rootPath = DataTableHelper.class.getClassLoader().getResource(DEFAULT_DB_INIT_PATH)
-				.getPath();
 
 		// 从SQL文件中读取SQL语句，每行一条，末尾没有分号
 		List<String> sqlList = new ArrayList<String>();
@@ -101,40 +112,25 @@ public class DataTableHelper {
 					sqlList.add(line);
 				}
 			}
-
+			executeSql(sqlList);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			IOUtils.closeQuietly(br);
 			IOUtils.closeQuietly(in);
 		}
-
-		// 数据库配置文件
-		try {
-			Statement st = (Statement) DataTableHelper.getConnection().createStatement();
-			for (String sql : sqlList) {
-				System.err.println("执行语句是：" + sql);
-				st.executeUpdate(sql);
-			}
-			closeAll(getConnection(), null, null, null);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	/**
-	 * 
-	 * @Title：closeAll
-	 * @Description：关闭数据库连接
+	 * @方法描述: 关闭数据库连接
 	 * @param conn
 	 * @param rs
 	 * @param st
 	 * @param ps
-	 * @throws Exception
-	 * @return：void 返回类型
+	 * @throws SQLException
 	 */
 	public static void closeAll(Connection conn, ResultSet rs, Statement st, PreparedStatement ps)
-			throws Exception {
+			throws SQLException {
 		if (rs != null) {
 			rs.close();
 		}
@@ -152,56 +148,55 @@ public class DataTableHelper {
 
 	/**
 	 * 
-	 * @Title：getTableInfo @Description：
-	 *                     <ul>
-	 *                     <li>列的类型和属性信息的对象</li>
-	 *                     <li>ResultSetMetaData接口用于获取关于ResultSet对象中列的类型和属性信息的对象
-	 *                     </li>
-	 *                     </ul>
+	 * @方法描述:
+	 *        <ul>
+	 *        <li>列的类型和属性信息的对象</li>
+	 *        <li>ResultSetMetaData接口用于获取关于ResultSet对象中列的类型和属性信息的对象</li>
+	 *        </ul>
 	 * @param tableName
 	 * @return
-	 * @return：TableInfo 返回类型
+	 * @throws SQLException
 	 */
-	public static List<ColumnInfo> getTableInfo(String tableName) {
-		List<ColumnInfo> resList = new ArrayList<ColumnInfo>();
+	public static List<ColumnInfo> getTableInfo(String tableName) throws SQLException {
+		List<ColumnInfo> resList = null;
 		// 如果所要查询的表没有在数据库中表集合中，直接返回null
 		if (ListUtilHelper.indexOf(getTableNameByCon(), tableName) < 0) {
 			return null;
 		}
 		if (StringUtils.isNotBlank(tableName)) {
-			try {
-				ColumnInfo info = null;
+			resList = new ArrayList<ColumnInfo>();
+			ColumnInfo info = null;
+			PreparedStatement ps = null;
+			ResultSet rs = null;
 
-				Connection conn = getConnection();
-				String sql = "select * from " + tableName;
-				PreparedStatement ps = conn.prepareStatement(sql);
-				ResultSet rs = ps.executeQuery();
-				ResultSetMetaData rsme = rs.getMetaData();
+			conn = getConnection();
+			String sql = "select * from " + tableName;
+			ps = conn.prepareStatement(sql);
+			rs = ps.executeQuery();
+			ResultSetMetaData rsme = rs.getMetaData();
 
-				/** ResultSet对象中的列数 */
-				int columnCount = rsme.getColumnCount();
-				if (columnCount >= 1) {
-					for (int i = 1; i < columnCount; i++) {
-						info = new ColumnInfo();
-						// 列名称:
-						info.setColumnName(rsme.getColumnName(i));
-						// 列类型(DB)
-						info.setColumnTypeName(rsme.getColumnTypeName(i));
-						// 长度
-						info.setPrecision(rsme.getPrecision(i));
-						// 是否自动编号
-						info.setAutoIncrement(rsme.isAutoIncrement(i));
-						// 是否可以为空
-						boolean result = rsme.isNullable(i) == 0 ? true : false;
-						info.setAutoIncrement(result);
-						// 是否可以写入
-						info.setReadOnly(rsme.isReadOnly(i));
-						resList.add(info);
-					}
+			/** ResultSet对象中的列数 */
+			int columnCount = rsme.getColumnCount();
+			if (columnCount >= 1) {
+				for (int i = 1; i < columnCount; i++) {
+					info = new ColumnInfo();
+					// 列名称:
+					info.setColumnName(rsme.getColumnName(i));
+					// 列类型(DB)
+					info.setColumnTypeName(rsme.getColumnTypeName(i));
+					// 长度
+					info.setPrecision(rsme.getPrecision(i));
+					// 是否自动编号
+					info.setAutoIncrement(rsme.isAutoIncrement(i));
+					// 是否可以为空
+					boolean result = rsme.isNullable(i) == 0 ? true : false;
+					info.setAutoIncrement(result);
+					// 是否可以写入
+					info.setReadOnly(rsme.isReadOnly(i));
+					resList.add(info);
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
+			closeAll(conn, rs, null, ps);
 		}
 		return resList;
 	}
@@ -211,68 +206,50 @@ public class DataTableHelper {
 	 * @Title：getDataBaseInfo
 	 * @Description：数据库相关属性
 	 * @return
+	 * @throws SQLException
 	 * @return：DataBaseInfo 返回类型
 	 */
-	public static DataBaseInfo getDataBaseInfo() {
+	public static DataBaseInfo getDataBaseInfo() throws SQLException {
+		conn = getConnection();
 		DataBaseInfo resultMap = new DataBaseInfo();
-		Connection conn = null;
 
-		try {
-			conn = getConnection();
-			DatabaseMetaData metadata = conn.getMetaData();
+		DatabaseMetaData metadata = conn.getMetaData();
 
-			resultMap.setUserName(metadata.getUserName());
-			resultMap.setDataBaseUrl(metadata.getURL());
-			resultMap.setReadOnly(metadata.isReadOnly());
-			resultMap.setProductName(metadata.getDatabaseProductName());
-			resultMap.setVersion(metadata.getDatabaseProductName());
-			resultMap.setDriverName(metadata.getDriverName());
-			resultMap.setDriverVersion(metadata.getDriverVersion());
+		resultMap.setUserName(metadata.getUserName());
+		resultMap.setDataBaseUrl(metadata.getURL());
+		resultMap.setReadOnly(metadata.isReadOnly());
+		resultMap.setProductName(metadata.getDatabaseProductName());
+		resultMap.setVersion(metadata.getDatabaseProductName());
+		resultMap.setDriverName(metadata.getDriverName());
+		resultMap.setDriverVersion(metadata.getDriverVersion());
 
-			ResultSet rs = metadata.getTableTypes();
-			List<String> typeInfo = new ArrayList<String>();
-			while (rs.next()) {
-				typeInfo.add(rs.getString(1));
-			}
-			resultMap.setTableTypes(typeInfo);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				conn.close();
-			} catch (Exception e2) {
-			}
+		ResultSet rs = metadata.getTableTypes();
+		List<String> typeInfo = new ArrayList<String>();
+		while (rs.next()) {
+			typeInfo.add(rs.getString(1));
 		}
+		resultMap.setTableTypes(typeInfo);
+
 		return resultMap;
 	}
 
 	/**
-	 * 
-	 * @Title：getAllTable
-	 * @Description：得到当前数据库下所有的表名
+	 * @方法描述: 得到当前数据库下所有的表名
 	 * @return
-	 * @return：List<String> 返回类型
+	 * @throws SQLException
 	 */
-	public static List<String> getTableNameByCon() {
-		Connection conn = getConnection();
-		List<String> resultList = new ArrayList<String>();
-		try {
-			DatabaseMetaData metadata = conn.getMetaData();
-			ResultSet rs = metadata.getTables(null, null, null, new String[] { "TABLE" });
-			while (rs.next()) {
-				/** 表所属用户名: rs.getString(2) */
-				resultList.add(rs.getString(3));
-			}
-			conn.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (conn != null)
-					conn.close();
-			} catch (Exception e2) {
-			}
+	public static List<String> getTableNameByCon() throws SQLException {
+		List<String> resultList = null;
+		resultList = new ArrayList<String>();
+		conn = getConnection();
+		DatabaseMetaData metadata = conn.getMetaData();
+		ResultSet rs = metadata.getTables(null, null, null, new String[] { "TABLE" });
+		while (rs.next()) {
+			/** 表所属用户名: rs.getString(2) */
+			resultList.add(rs.getString(3));
 		}
+		closeAll(conn, null, null, null);
+
 		return resultList;
 	}
 	/*--------------------------共有方法 end-------------------------------*/
