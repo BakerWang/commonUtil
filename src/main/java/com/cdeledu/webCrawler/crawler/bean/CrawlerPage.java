@@ -1,4 +1,4 @@
-package com.cdeledu.webCrawler.crawler.util;
+package com.cdeledu.webCrawler.crawler.bean;
 
 /**
  * @类描述: 搜集系统按照URL抓取器对应的网页，网页信息保存在Page类

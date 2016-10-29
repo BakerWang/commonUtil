@@ -1,4 +1,4 @@
-package com.cdeledu.webCrawler.crawler.util;
+package com.cdeledu.webCrawler.crawler.bean;
 
 import com.cdeledu.webCrawler.crawler.type.SchemType;
 
