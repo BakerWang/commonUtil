@@ -68,7 +68,7 @@ public class DataTableHelper {
 	 * @return
 	 * @throws SQLException
 	 */
-	private static Connection getConnection() throws SQLException {
+	public static Connection getConnection() throws SQLException {
 		return DriverManager.getConnection(dbUrl, dbUserName, dbPassword);
 	}
 
