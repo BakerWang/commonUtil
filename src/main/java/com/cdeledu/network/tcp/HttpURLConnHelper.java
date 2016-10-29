@@ -34,7 +34,8 @@ import com.cdeledu.exception.RuntimeExceptionHelper;
 import com.cdeledu.network.common.UrlHelper;
 import com.cdeledu.network.common.model.BasicAuthenticator;
 import com.cdeledu.network.common.model.HttpMethod;
-import com.cdeledu.network.common.model.ProxyBean;
+import com.cdeledu.network.common.util.IpUtilHelper;
+import com.cdeledu.webCrawler.crawler.type.UserAgentType;
 
 /**
  * @描述:
@@ -81,31 +82,35 @@ public class HttpURLConnHelper {
 	 *            请求地址
 	 * @param RequestMethod
 	 *            请求方法
-	 * @param isproxy
+	 * @param isUseProxy
 	 *            是否代理
-	 * @param proxyBean
-	 *            若是代理，代理参数配置
 	 * @return
 	 */
-	private static HttpURLConnection initConn(String url, String ReqMethod, boolean isproxy,
-			ProxyBean proxy) throws Exception {
+	private static HttpURLConnection initConn(String url, String ReqMethod, boolean isUseProxy)
+			throws Exception {
 
 		if (StringUtils.isBlank(url)) {
 			throw new RuntimeExceptionHelper("请求的URL不能为空");
 		}
 		// 打开HttpURLConnection
 		realUrl = new URL(url);
-		if (isproxy) {
-			if (null != proxy) {
-				Proxy newProxy = new Proxy(Proxy.Type.HTTP,
-						new InetSocketAddress(proxy.getHost(), proxy.getPort()));
+		if (isUseProxy) {
+			Map<String, Object> ipMap = IpUtilHelper.getProxyIp();
+			// http访问要使用的代理服务器的地址
+			String proxyIp = String.valueOf(ipMap.get("proxyIp"));
+			// http访问要使用的代理服务器的端口
+			String proxyPort = String.valueOf(ipMap.get("proxyPort"));
+			// http访问要使用的代理服务器的用户名
+			String userName = String.valueOf(ipMap.get("userName"));
+			// http访问要使用的代理服务器的密码
+			String password = String.valueOf(ipMap.get("proxyPort"));
+			Proxy newProxy = new Proxy(Proxy.Type.HTTP,
+					new InetSocketAddress(proxyIp, Integer.parseInt(proxyPort)));
 
-				Authenticator.setDefault(
-						new BasicAuthenticator(proxy.getUserName(), proxy.getPassword()));
-				urlConn = realUrl.openConnection(newProxy);
-			} else {
-				urlConn = realUrl.openConnection();
+			if (StringUtils.isNoneBlank(userName) && StringUtils.isNoneBlank(password)) {
+				Authenticator.setDefault(new BasicAuthenticator(userName, password));
 			}
+			urlConn = realUrl.openConnection(newProxy);
 		} else {
 			urlConn = realUrl.openConnection();
 		}
@@ -118,8 +123,7 @@ public class HttpURLConnHelper {
 		// 设置 HttpURLConnection的字符编码,从而避免出现乱码
 		urlConn.setRequestProperty(HttpHeaders.ACCEPT_CHARSET, "utf-8");
 		// 浏览页面的访问者在用什么操作系统(包括版本号)、浏览器(包括版本号)等
-		urlConn.setRequestProperty(HttpHeaders.USER_AGENT,
-				"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0 Hutool");
+		urlConn.setRequestProperty(HttpHeaders.USER_AGENT,UserAgentType.PC_Firefox.getValue());
 
 		httpConn = (HttpURLConnection) urlConn;
 
@@ -162,7 +166,7 @@ public class HttpURLConnHelper {
 
 	/** 利用 HttpURLConnection发送代理服务器的POST()方法的请求 */
 	private static String sendProxyRequest(String url, String params, boolean isproxy,
-			ProxyBean proxy, Charset charset) throws Exception {
+			Charset charset) throws Exception {
 		String result = "";// 响应内容
 		OutputStream outStrm = null;
 		InputStream is = null;
@@ -172,7 +176,7 @@ public class HttpURLConnHelper {
 					"targetUrl不能为空!");
 		}
 
-		httpConn = initConn(url, POST_HTTP, isproxy, proxy);
+		httpConn = initConn(url, POST_HTTP, isproxy);
 
 		// 建立实际的连接
 		httpConn.connect();
@@ -249,7 +253,7 @@ public class HttpURLConnHelper {
 
 		try {
 
-			httpConn = initConn(url, HttpMethod.GET.getValue(), false, null);
+			httpConn = initConn(url, HttpMethod.GET.getValue(), false);
 			if (MapUtilHelper.isNotEmpty(headerMap)) {
 				for (Map.Entry<String, String> entry : headerMap.entrySet()) {
 					httpConn.setRequestProperty(entry.getKey(), entry.getValue());
@@ -296,7 +300,7 @@ public class HttpURLConnHelper {
 	 * @return 所代表远程资源的响应结果
 	 */
 	public static String sendPostRequest(String url, Charset charset) throws Exception {
-		return sendProxyRequest(url, null, false, null, charset);
+		return sendProxyRequest(url, null, false, charset);
 	}
 
 	/**
@@ -311,7 +315,7 @@ public class HttpURLConnHelper {
 	 */
 	public static String sendPostRequest(String url, String params, Charset charset)
 			throws Exception {
-		return sendProxyRequest(url, params, false, null, charset);
+		return sendProxyRequest(url, params, false, charset);
 	}
 
 	/**
@@ -336,24 +340,13 @@ public class HttpURLConnHelper {
 	 *            发送请求的 URL
 	 * @param parameters
 	 *            请求参数
-	 * @param host
-	 *            http访问要使用的代理服务器的地址
-	 * @param port
-	 *            http访问要使用的代理服务器的端口
-	 * @param userName
-	 *            http访问要使用的代理服务器的用户名
-	 * @param password
-	 *            http访问要使用的代理服务器的密码
+	 * @param isproxy
+	 *            是否使用代理
 	 * @return
 	 */
-	public static String sendPostRequest(String url, String parameters, String host, int port,
-			String userName, String password, Charset charset) throws Exception {
-		ProxyBean proxy = new ProxyBean();
-		proxy.setHost(host);
-		proxy.setPort(port);
-		proxy.setUserName(userName);
-		proxy.setPassword(password);
-		return sendProxyRequest(url, parameters, true, proxy, charset);
+	public static String sendPostRequest(String url, String parameters, boolean isproxy,
+			Charset charset) throws Exception {
+		return sendProxyRequest(url, parameters, true, charset);
 	}
 
 	/**
