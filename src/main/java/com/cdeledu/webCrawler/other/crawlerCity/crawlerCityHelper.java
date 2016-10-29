@@ -4,8 +4,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.cdeledu.webCrawler.crawler.util.WebCrawler;
-
 /**
  * @类描述: 利用网络爬虫端抓取数据
  * @创建者: 皇族灬战狼
@@ -18,6 +16,15 @@ public class crawlerCityHelper {
 	/** ----------------------------------------------------- Fields end */
 
 	/** ----------------------------------------------- [私有方法] */
+	/**
+	 * @方法描述: 获取省份代码
+	 * @return
+	 */
+	private static String getProvinceCode(String val) {
+		if (val.indexOf(".") == -1)
+			return val;
+		return (String) val.substring(0, val.indexOf("."));
+	}
 
 	/**
 	 * @方法描述: 将得到的document进行解析 存入数据库
@@ -34,6 +41,7 @@ public class crawlerCityHelper {
 			 */
 			for (Element ele2 : eles2) {
 				System.out.println("	省级行政区 " + ele2.text());
+				// getProvinceCode(ele2.attr("href"));
 				Document doc2 = WebCrawler.getDocument(ele2.absUrl("href"));
 
 				Elements eles3 = doc2.getElementsByAttributeValue("class", "citytr");
