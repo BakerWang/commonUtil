@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,10 @@ public class IpUtilHelper {
 	private final static String IP_LOOKUP = "http://apis.baidu.com/apistore/iplookupservice/iplookup?";
 	private final static String IP_LOOKUP_SERVICE = IP_LOOKUP + "ip=%s";
 	private static Map<String, String> headerMap = new HashMap<String, String>();
+	private static String proxyIp = "";
+	private static String proxyPort = "";
+	private static String userName = "";
+	private static String password = "";
 	static {
 		headerMap.put("apikey", ConfigUtil.getApiStoreAkValue());
 	}
@@ -259,12 +264,11 @@ public class IpUtilHelper {
 	}
 
 	/**
-	 * 
-	 * @方法描述: 设置代理IP:设置于http请求中
-	 * @创建者: 皇族灬战狼
-	 * @创建时间: 2016年8月16日 下午8:21:00
+	 * @方法描述: 获取IP库中的IP
+	 * @return
 	 */
-	public static void setProxyIp() {
+	public static Map<String, Object> getProxyIp() {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
 		try {
 			List<String> ipList = Lists.newArrayList();
 			BufferedReader proxyIpReader = new BufferedReader(new InputStreamReader(
@@ -276,24 +280,46 @@ public class IpUtilHelper {
 
 			Random random = new Random();
 			int randomInt = random.nextInt(ipList.size());
-			String ipport = ipList.get(randomInt);
 
-			String proxyIp = ipport.substring(0, ipport.lastIndexOf(":"));
-			String proxyPort = ipport.substring(ipport.lastIndexOf(":") + 1, ipport.length());
-
-			System.setProperty("http.maxRedirects", "50");
-			System.getProperties().setProperty("proxySet", "true");
-			// 设置代理ip
-			System.getProperties().setProperty("http.proxyHost", proxyIp);
-			// 设置代理ip的端口号
-			System.getProperties().setProperty("http.proxyPort", proxyPort);
-
+			List<String> resultList = Arrays.asList(ipList.get(randomInt).split(":"));
+			proxyIp = resultList.get(0);
+			proxyPort = resultList.get(1);
+			if (resultList.size() == 4) {
+				userName = resultList.get(2);
+				password = resultList.get(3);
+			}
+			resultMap.put("proxyIp", proxyIp);
+			resultMap.put("proxyPort", proxyPort);
+			resultMap.put("userName", userName);
+			resultMap.put("password", password);
+			return resultMap;
 		} catch (Exception ipEx) {
 			if (log.isEnabledFor(Level.ERROR)) {
 				log.error("重新设置代理ip", ipEx);
 			}
-			setProxyIp();
+			return getProxyIp();
 		}
+
+	}
+
+	/**
+	 * 
+	 * @方法描述: 设置代理IP:设置于http请求中
+	 * @创建者: 皇族灬战狼
+	 * @创建时间: 2016年8月16日 下午8:21:00
+	 */
+	public static void setProxyIp() {
+		Map<String, Object> ipMap = getProxyIp();
+
+		proxyIp = String.valueOf(ipMap.get("proxyIp"));
+		proxyPort = String.valueOf(ipMap.get("proxyPort"));
+
+		System.setProperty("http.maxRedirects", "50");
+		System.getProperties().setProperty("proxySet", "true");
+		// 设置代理ip
+		System.getProperties().setProperty("http.proxyHost", proxyIp);
+		// 设置代理ip的端口号
+		System.getProperties().setProperty("http.proxyPort", proxyPort);
 	}
 
 	/**
