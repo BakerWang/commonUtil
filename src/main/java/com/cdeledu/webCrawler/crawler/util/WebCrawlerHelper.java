@@ -6,23 +6,24 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 
 /**
  * @类描述: 数据抓取以及解析通用类
  * @创建者: 皇族灬战狼
  * @创建时间: 2016年10月29日 下午3:03:58
- * @版本: V1.0
+ * @版本: V1.1
  * @since: JDK 1.7
  */
-public class WebCrawler {
+public class WebCrawlerHelper {
 	/** ----------------------------------------------------- Fields start */
 	/** ----------------------------------------------------- Fields end */
 
 	/** ----------------------------------------------- [私有方法] */
 	/** ----------------------------------------------- [私有方法] */
 	/**
-	 * @方法描述: TODO(这里用一句话描述这个方法的作用)
+	 * @方法描述: 保存文件
 	 * @param doc
 	 *            Html文档
 	 * @param path
@@ -46,5 +47,26 @@ public class WebCrawler {
 		IOUtils.closeQuietly(osw);
 		IOUtils.closeQuietly(fos);
 		return filePath;
+	}
+
+	/**
+	 * @方法描述: 去除结尾
+	 * @param target
+	 *            去除结尾的目标 若为空，则返回""
+	 * @param sign
+	 *            结尾标识符 若为空，则返回 target
+	 * @return
+	 */
+	public static String removeTheEnd(String target, String sign) {
+		if (StringUtils.isBlank(target)) {
+			return "";
+		}
+		if (StringUtils.isBlank(sign)) {
+			return target;
+		}
+		while (target.endsWith(sign)) {
+			target = target.substring(0, target.length() - 1);
+		}
+		return target;
 	}
 }
