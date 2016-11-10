@@ -1,6 +1,5 @@
 package com.cdeledu.network.tcp;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,51 +13,55 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
+import com.cdeledu.Constant.ConstantHelper;
 import com.cdeledu.exception.ExceptionHelper;
 import com.cdeledu.network.common.model.HttpHeaders;
 import com.cdeledu.reflection.ClassUtilHelper;
+import com.cdeledu.webCrawler.crawler.type.UserAgentType;
 
 /**
- * 
- * @ClassName: HttpClientHelper
- * @Description:
- *               <ul>
- *               <li>封装了一些采用HttpClient发送HTTP请求的方法</li>
- *               <li>实现与 org.apache.http</li>
- *               <li>使用HttpClient步骤如下</li>
- *               <li>1. 创建HttpClient对象</li>
- *               <li>2. 创建请求方法的实例,并指定请求URL <br/>
- *               如果需要发送GET请求,创建HttpGet对象 <br/>
- *               如果需要发送POST请求,创建HttpPost对象</li>
- *               <li>3. 如果需要发送请求参数<br/>
- *               可调用HttpGet、HttpPost共同的setParams(HetpParams params)方法来添加请求参数
- *               <br/>
- *               对于HttpPost对象而言,也可调用setEntity(HttpEntity entity)方法来设置请求参数</li>
- *               <li>4. 调用HttpClient对象的execute(HttpUriRequest
- *               request)发送请求,该方法返回一个HttpResponse</li>
- *               <li>5. 调用HttpResponse的getAllHeaders()、getHeaders(String
- *               name)等方法可获取服务器的响应头<br/>
- *               调用HttpResponse的getEntity()方法可获取HttpEntity对象,该对象包装了服务器的响应内容</li>
- *               <li>6. 释放连接:无论执行方法是否成功,都必须释放连接</li>
- *               </ul>
- * @author: 独泪了无痕
- * @date: 2015年7月28日 上午9:23:23
- * @version: V1.0
- * @history:
+ * @类描述:
+ *       <ul>
+ *       <li>封装了一些采用HttpClient发送HTTP请求的方法</li>
+ *       <li>实现与 org.apache.http</li>
+ *       <li>使用HttpClient步骤如下</li>
+ *       <li>1. 创建HttpClient对象</li>
+ *       <li>2. 创建请求方法的实例,并指定请求URL <br/>
+ *       如果需要发送GET请求,创建HttpGet对象 <br/>
+ *       如果需要发送POST请求,创建HttpPost对象</li>
+ *       <li>3. 如果需要发送请求参数<br/>
+ *       可调用HttpGet、HttpPost共同的setParams(HetpParams params)方法来添加请求参数 <br/>
+ *       对于HttpPost对象而言,也可调用setEntity(HttpEntity entity)方法来设置请求参数</li>
+ *       <li>4. 调用HttpClient对象的execute(HttpUriRequest
+ *       request)发送请求,该方法返回一个HttpResponse</li>
+ *       <li>5. 调用HttpResponse的getAllHeaders()、getHeaders(String
+ *       name)等方法可获取服务器的响应头<br/>
+ *       调用HttpResponse的getEntity()方法可获取HttpEntity对象,该对象包装了服务器的响应内容</li>
+ *       <li>6. 释放连接:无论执行方法是否成功,都必须释放连接</li>
+ *       </ul>
+ * @创建者: 独泪了无痕
+ * @创建时间: 2015年7月28日 上午9:23:23
+ * @版本: V2.1
+ * @since: JDK 1.7
  */
 @SuppressWarnings("deprecation")
 public class HttpClientHelper {
 	/*-------------------------- 私有属性 begin -------------------------------*/
+	public static HttpClientContext context = new HttpClientContext();
 	private HttpClient httpClient = null;
 	private static HttpClientHelper instance;
 	/** 请求编码，默认使用utf-8 */
-	private static String URLCHARSET = "utf-8";
+	private static String URLCHARSET = ConstantHelper.UTF_8.name();
+	private String result = null;
+	private HttpEntity entity = null;
+	private HttpResponse response = null;
+	private int statusCode = 0;
 
 	/*-------------------------- 私有属性 end   -------------------------------*/
 	/*-------------------------- 私有方法 begin -------------------------------*/
@@ -71,15 +74,46 @@ public class HttpClientHelper {
 		URLCHARSET = urlCharset;
 	}
 
-	/** 当HttpClient实例不再需要是，确保关闭connection manager，以释放其系统资源 */
-	private void destroyClient() {
-		httpClient.getConnectionManager().shutdown();
+	/**
+	 * @方法描述: 设置响应头信息
+	 * @param url
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	private HttpPost setHttpPost(String url, HttpPost httpPost) {
+		httpPost = new HttpPost(url);
+		httpPost.addHeader(HttpHeaders.CONNECTION, "keep-alive");
+		httpPost.addHeader(HttpHeaders.ACCEPT, "*/*");
+		httpPost.addHeader(HttpHeaders.CONTENT_TYPE,
+				"application/x-www-form-urlencoded; charset=UTF-8");
+		httpPost.addHeader("X-Requested-With", "XMLHttpRequest");
+		httpPost.addHeader(HttpHeaders.CACHE_CONTROL, "max-age=0");
+		httpPost.addHeader(HttpHeaders.USER_AGENT, UserAgentType.PC_Firefox.getValue());
+		return httpPost;
 	}
 
 	/**
-	 * 
-	 * @Title: sendPostRequestData
-	 * @Description: 通过post提交方式获取url指定的资源和数据
+	 * @方法描述: 获取响应体内容
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	private String getHttpResponseContent(HttpResponse response) throws Exception {
+		// 得到相应实体、包括响应头以及相应内容
+		entity = response.getEntity();
+		if (entity == null) {
+			return null;
+		}
+		// 得到response的内容
+		String content = EntityUtils.toString(entity, "utf-8");
+		// 关闭输入流
+		EntityUtils.consume(entity);
+		return content;
+	}
+
+	/**
+	 * @方法描述: 通过post提交方式获取url指定的资源和数据
 	 * @param targetUrl
 	 *            服务器地址
 	 * @param headersMap
@@ -87,35 +121,36 @@ public class HttpClientHelper {
 	 * @param nameValuePairs
 	 *            请求参数
 	 * @return
+	 * @throws Exception
 	 */
-	private String sendPostRequestData(String targetUrl, Map<String, String> headersMap,
-			List<NameValuePair> nameValuePairs) {
-		String result = null;
-
+	private String sendPostRequestData(String targetUrl, Map<String, Object> headersMap,
+			List<NameValuePair> nvps) throws Exception {
+		HttpEntity entity = null;
+		// HttpClient中的post请求包装类
 		HttpPost httpPost = new HttpPost(targetUrl);
 
 		try {
 			if (MapUtils.isNotEmpty(headersMap)) {
 				for (String key : headersMap.keySet()) {
-					httpPost.setHeader(key, headersMap.get(key));
+					Object hKey = null == headersMap.get(key) ? "" : headersMap.get(key);
+					httpPost.setHeader(key, String.valueOf(hKey));
 				}
 			}
-			if (CollectionUtils.isNotEmpty(nameValuePairs)) {
-				httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs, "UTF-8"));
+			// nvps是包装请求参数的list
+			if (CollectionUtils.isNotEmpty(nvps)) {
+				httpPost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
 			}
-
-			HttpResponse response = httpClient.execute(httpPost);
+			// 执行请求用execute方法,content用来帮我们附带上额外信息
+			response = httpClient.execute(httpPost, context);
 
 			int statusCode = response.getStatusLine().getStatusCode();
 			// 请求和响应都成功了
 			if (statusCode == 200) {
-				// 获取到一个HttpEntity实例
-				HttpEntity entity = response.getEntity();
-				if (entity == null) {
-					return null;
+				try {
+					result = getHttpResponseContent(response);
+				} catch (Exception ioe) {
+					ioe.printStackTrace();
 				}
-				// 用EntityUtils.toString()这个方法将HttpEntity转换成字符串
-				result = EntityUtils.toString(entity, "utf-8");
 			} else {
 				httpPost.abort();
 				throw new RuntimeException("HttpClient,error status code :" + statusCode);
@@ -123,6 +158,8 @@ public class HttpClientHelper {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
+			// 关闭输入流
+			EntityUtils.consume(entity);
 			if (httpPost != null) {
 				httpPost.releaseConnection();
 			}
@@ -130,10 +167,67 @@ public class HttpClientHelper {
 		return result;
 	}
 
-	/*-------------------------- 私有方法 end   -------------------------------*/
-	/*-------------------------- 公有方法 begin -------------------------------*/
+	/**
+	 * @方法描述: 通过GET提交方式获取url指定的资源和数据
+	 * @param targetUrl
+	 *            服务器地址
+	 * @param headersMap
+	 *            请求header参数
+	 * @return
+	 * @throws Exception
+	 */
+	public String sendGetRequestDate(String targetUrl, Map<String, Object> headersMap)
+			throws Exception {
+		HttpGet httpGet = new HttpGet(targetUrl);
+		// 设置响应头信息
+		httpGet.addHeader(HttpHeaders.ACCEPT,
+				"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+		httpGet.addHeader(HttpHeaders.CONNECTION, "keep-alive");
+		httpGet.addHeader(HttpHeaders.CACHE_CONTROL, "max-age=0");
+		httpGet.addHeader(HttpHeaders.USER_AGENT, UserAgentType.PC_Firefox.getValue());
+
+		try {
+			if (MapUtils.isNotEmpty(headersMap)) {
+				for (String key : headersMap.keySet()) {
+					Object hKey = null == headersMap.get(key) ? "" : headersMap.get(key);
+					httpGet.setHeader(key, String.valueOf(hKey));
+				}
+			}
+
+			response = httpClient.execute(httpGet);
+
+			statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == 200) {
+				try {
+					result = getHttpResponseContent(response);
+				} catch (Exception ioe) {
+					ioe.printStackTrace();
+				}
+			} else {
+				httpGet.abort();
+				throw new RuntimeException("HttpClient,error status code :" + statusCode);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+			// 释放资源
+			if (httpGet != null) {
+				httpGet.releaseConnection();
+			}
+		}
+
+		return result;
+	}
+
+	/** -------------------------- 私有方法 end ------------------------------- */
+	/** -------------------------- 公有方法 begin ------------------------------- */
 	public HttpClientHelper getInstance() {
 		return getInstance(URLCHARSET);
+	}
+
+	/** 当HttpClient实例不再需要是，确保关闭connection manager，以释放其系统资源 */
+	public void destroyClient() {
+		httpClient.getConnectionManager().shutdown();
 	}
 
 	public HttpClientHelper getInstance(String urlCharset) {
@@ -156,60 +250,21 @@ public class HttpClientHelper {
 	 *            服务器地址
 	 * @return 返回响应的文本
 	 */
-	public String sendGetRequest(String targetUrl) {
-		return sendGetRequest(targetUrl, null);
+	public String sendGetRequest(String url) throws Exception {
+		return sendGetRequestDate(url, null);
 	}
 
 	/**
-	 * 
-	 * @Title: sendGetRequest
-	 * @Description: 带header的get请求
+	 * @方法描述: 带header的get请求
 	 * @param targetUrl
-	 *            服务器地址
+	 *            请求服务器地址
 	 * @param headersMap
 	 *            添加的请求header信息
 	 * @return
+	 * @throws Exception
 	 */
-	public String sendGetRequest(String targetUrl, Map<String, String> headersMap) {
-		String result = null;
-		HttpGet httpGet = new HttpGet(targetUrl);
-		// 设置响应头信息
-		httpGet.addHeader(HttpHeaders.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-		httpGet.addHeader(HttpHeaders.CONNECTION, "keep-alive");
-		httpGet.addHeader(HttpHeaders.CACHE_CONTROL, "max-age=0");
-		httpGet.addHeader(HttpHeaders.USER_AGENT, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-
-		try {
-			if (MapUtils.isNotEmpty(headersMap)) {
-				for (String key : headersMap.keySet()) {
-					httpGet.setHeader(key, headersMap.get(key));
-				}
-			}
-
-			HttpResponse response = httpClient.execute(httpGet);
-
-			int statusCode = response.getStatusLine().getStatusCode();
-			if (statusCode == 200) {
-				HttpEntity entity = response.getEntity();
-				if (entity == null) {
-					return null;
-				}
-				result = EntityUtils.toString(entity, "utf-8");
-			} else {
-				httpGet.abort();
-				throw new RuntimeException("HttpClient,error status code :" + statusCode);
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		} finally {
-			// 释放资源
-			if (httpGet != null) {
-				httpGet.releaseConnection();
-			}
-			destroyClient();
-		}
-
-		return result;
+	public String sendGetRequest(String url, Map<String, Object> headersMap) throws Exception {
+		return sendGetRequestDate(url, headersMap);
 	}
 
 	/**
@@ -220,8 +275,8 @@ public class HttpClientHelper {
 	 *            服务器地址
 	 * @return
 	 */
-	public String sendPostRequest(String targetUrl) {
-		return sendPostRequest(targetUrl, null, null);
+	public String sendPostRequest(String url) throws Exception {
+		return sendPostRequest(url, null, null);
 	}
 
 	/**
@@ -234,22 +289,19 @@ public class HttpClientHelper {
 	 *            请求header参数
 	 * @return
 	 */
-	public String sendPostRequestHeader(String targetUrl, Map<String, String> headerMap) {
-		return sendPostRequest(targetUrl, headerMap, null);
+	public String sendPostRequest(String url, Map<String, Object> headersMap) throws Exception {
+		return sendPostRequest(url, headersMap, null);
 	}
 
 	/**
-	 * 
-	 * @Title: sendPostRequestParam
-	 * @Description: 通过post提交方式获取url指定的资源和数据
+	 * @方法描述: 通过post提交方式获取url指定的资源和数据
 	 * @param targetUrl
-	 *            服务器地址
-	 * @param parameterMap
-	 *            请求参数
-	 * @return
+	 * @param nvps
+	 * @return 请求参数
+	 * @throws Exception
 	 */
-	public String sendPostRequestParam(String targetUrl, Map<String, String> parameterMap) {
-		return sendPostRequest(targetUrl, null, parameterMap);
+	public String sendPostRequest(String url, List<NameValuePair> nvps) throws Exception {
+		return sendPostRequestData(url, null, nvps);
 	}
 
 	/**
@@ -260,23 +312,13 @@ public class HttpClientHelper {
 	 *            服务器地址
 	 * @param headersMap
 	 *            请求header参数
-	 * @param paramsMap
+	 * @param nvps
 	 *            请求参数
 	 * @return
 	 */
-	public String sendPostRequest(String targetUrl, Map<String, String> headersMap, Map<String, String> paramsMap) {
-		// 创建参数队列
-		List<NameValuePair> formParams = new ArrayList<NameValuePair>();
-		BasicNameValuePair bnp = null;
-
-		if (MapUtils.isNotEmpty(paramsMap)) {
-			for (String key : paramsMap.keySet()) {
-				bnp = new BasicNameValuePair(key, paramsMap.get(key));
-				formParams.add(bnp);
-			}
-		}
-
-		return sendPostRequestData(targetUrl, headersMap, formParams);
+	public String sendPostRequest(String url, Map<String, Object> headersMap,
+			List<NameValuePair> nvps) throws Exception {
+		return sendPostRequestData(url, headersMap, nvps);
 	}
 
 	/**
@@ -289,25 +331,17 @@ public class HttpClientHelper {
 	 *            传输内容
 	 * @return
 	 */
-	public String sendPostRequestByJsonData(String targetUrl, String content) {
-		String result = "";
+
+	public String sendPostRequestByJsonData(String targetUrl, String content) throws Exception {
 		HttpPost httpPost = null;
 
 		if (StringUtils.isEmpty(targetUrl)) {
-			ExceptionHelper.getExceptionHint(ClassUtilHelper.getClassName(), ClassUtilHelper.getMethodName(),
-					"targetUrl不能为空!");
+			ExceptionHelper.getExceptionHint(ClassUtilHelper.getClassName(),
+					ClassUtilHelper.getMethodName(), "targetUrl不能为空!");
 		}
 		try {
 			// 发送POST请求:创建一个HttpPost对象,传入目标的网络地址
-			httpPost = new HttpPost(targetUrl);
-			// 设置响应头信息
-
-			httpPost.addHeader(HttpHeaders.CONNECTION, "keep-alive");
-			httpPost.addHeader(HttpHeaders.ACCEPT, "*/*");
-			httpPost.addHeader(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded; charset=UTF-8");
-			httpPost.addHeader("X-Requested-With", "XMLHttpRequest");
-			httpPost.addHeader(HttpHeaders.CACHE_CONTROL, "max-age=0");
-			httpPost.addHeader(HttpHeaders.USER_AGENT, "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0) ");
+			httpPost = setHttpPost(targetUrl, httpPost);
 
 			if (StringUtils.isNoneBlank(content)) {
 				httpPost.setEntity(new StringEntity(content, ContentType.APPLICATION_JSON));
@@ -315,18 +349,15 @@ public class HttpClientHelper {
 
 			// 调用HttpClient的execute()方法,并将HttpPost对象传入即可:
 			// 服务器所返回的所有信息存储在HttpResponse中
-			HttpResponse response = httpClient.execute(httpPost);
+			response = httpClient.execute(httpPost);
 
-			int statusCode = response.getStatusLine().getStatusCode();
-			// 请求和响应都成功了
+			statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode == 200) {
-				// 获取到一个HttpEntity实例
-				HttpEntity entity = response.getEntity();
-				if (entity == null) {
-					return null;
+				try {
+					result = getHttpResponseContent(response);
+				} catch (Exception ioe) {
+					ioe.printStackTrace();
 				}
-				// 用EntityUtils.toString()这个方法将HttpEntity转换成字符串
-				result = EntityUtils.toString(entity, "utf-8");
 			} else {
 				httpPost.abort();
 				throw new RuntimeException("HttpClient,error status code :" + statusCode);
@@ -334,20 +365,14 @@ public class HttpClientHelper {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
+
 			// 释放资源
 			if (httpPost != null) {
 				httpPost.releaseConnection();
 			}
-			destroyClient();
 		}
 		return result;
 	}
 
-	/*-------------------------- 公有方法 end   -------------------------------*/
-	public static void main(String[] args) {
-		String access_token = "ZOSfAFlk32khx-_Yumk7W23QVCwYmWWX_PXKVyRzAqefq4Cmc4hv4lQlY-EAH6QDBdH-2bLRSXeolIYgxYPmbZXYLP3SAighugLfwhEjxAc";
-		String GROUP_CREATE_URI = "https://api.weixin.qq.com/cgi-bin/groups/create?access_token=" + access_token;
-		System.out.println(
-				new HttpClientHelper().sendPostRequestByJsonData(GROUP_CREATE_URI, "{\"group\":{\"name\":\"test\"}}"));
-	}
+	/** -------------------------- 公有方法 end ------------------------------- */
 }
