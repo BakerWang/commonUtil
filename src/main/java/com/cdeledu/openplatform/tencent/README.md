@@ -16,6 +16,10 @@
 	
 `API列表 - QQ互联`
 	
-	http://wiki.connect.qq.com/api%E5%88%97%E8%A1%A8	
+	http://wiki.connect.qq.com/api%E5%88%97%E8%A1%A8
+	
+`腾讯云`
+	
+	https://www.qcloud.com/	
 
 
