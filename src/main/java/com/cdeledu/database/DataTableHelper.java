@@ -5,120 +5,127 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 
+import javax.sql.DataSource;
+
+import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 import com.cdeledu.apache.collection.ListUtilHelper;
 import com.cdeledu.database.model.ColumnInfo;
 import com.cdeledu.database.model.DataBaseInfo;
+import com.google.common.collect.Lists;
 import com.mysql.jdbc.Statement;
 
 /**
- * @描述: 数据库操作工具类
- * @author: 独泪了无痕
- * @date: 2015年6月25日 下午4:22:41
- * @version: V2.0
- * @history:
+ * @类描述:
+ *       <ul>
+ *       <li>是 Apache 组织提供的一个开源 JDBC工具类库,是轻量级的ORM工具</li>
+ *       <li>提供了数据库操作的简单实现,包含增、删、改、查、批量以及事务等操作</li>
+ *       <li>ResultSetHandler实现类介绍</li>
+ *       <li>①、ArrayHandler:将查询结果的第一行数据,保存到Object数组中</li>
+ *       <li>②、ArrayListHandler:将查询的结果,每一行先封装到Object数组中,然后将数据存入List集合</li>
+ *       <li>③、BeanHandler:将查询结果的第一行数据,封装到user对象</li>
+ *       <li>④、BeanListHandler:将查询结果的每一行封装到user对象,然后再存入List集合</li>
+ *       <li>⑤、ColumnListHandler:将查询结果的指定列的数据封装到List集合中</li>
+ *       <li>⑥、MapHandler:将查询结果的第一行数据封装到map集合(key==列名,value==列值)</li>
+ *       <li>⑦、MapListHandler:将查询结果的每一行封装到map(key==列名,value==列值),再将map集合存入List集合
+ *       </li>
+ *       <li>⑧、BeanMapHandler:将查询结果的每一行数据,封装到User对象,再存入mao集合中(key==列名,value==列值)
+ *       </li>
+ *       <li>⑨、KeyedHandler:将查询的结果的每一行数据,封装到map1(key==列名,value==列值
+ *       ),然后将map1集合(有多个)存入map2集合(只有一个)</li>
+ *       <li>⑩、ScalarHandler:封装类似count、avg、max、min、sum......函数的执行结果,处理单行记录,
+ *       只返回结果集第一行中的指定字段,如未指定字段,则返回第一个字段</li>
+ *       </ul>
+ * @创建者: 皇族灬战狼
+ * @创建时间: 2015年6月25日 下午4:22:41
+ * @版本: V2.0
+ * @since: JDK 1.7
  */
 public class DataTableHelper {
 	/** ----------------------------------------------------- Fields start */
-	// 属性文件
-	private final static String INIT_PATH = "datasource/jdbc";
-	// 初始化SQL文件
-	private final static String INIT_SQL_PATH = "datasource/initDatabase.sql";
-	private static String rootPath = "";
-	private static String dbUrl;
-	private static String dbUserName;
-	private static String dbPassword;
-	private static String jdbcName;
-	private final static ResourceBundle jdbcBundle;
-	private static Connection conn = null;
-	/** ----------------------------------------------------- Fields end */
-	static {
-		jdbcBundle = ResourceBundle.getBundle(INIT_PATH);
-		dbUrl = jdbcBundle.getString("database.dbUrl");
-		dbUserName = jdbcBundle.getString("database.dbUserName");
-		dbPassword = jdbcBundle.getString("database.dbPassword");
-		jdbcName = jdbcBundle.getString("database.jdbcName");
-		rootPath = DataTableHelper.class.getClassLoader().getResource(INIT_SQL_PATH).getPath();
-		try {
-			Class.forName(jdbcName);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
+	private static Logger logger = Logger.getLogger(DataTableHelper.class);
+	private String dbUrl = null;
+	private String dbUserName = null;
+	private String dbPassword = null;
+	private String jdbcName = null;
+	/** 获取数据源的接口 */
+	private DataSource dataSource;
+	/** SQL执行工具 :实例化查询接口 */
+	private DatabaseMetaData metadata = null;
+	private static DataTableHelper instance;
+	/** 数据库连接 */
+	private Connection conn = null;
 
-	/*--------------------------私有属性 end-------------------------------*/
-	/*--------------------------私有方法 start-------------------------------*/
-	private DataTableHelper() {
-		// 非可实例化类
+	/** ----------------------------------------------------- Fields end */
+	/** ----------------------------------------------------- 私有方法 开始 */
+
+	public DataTableHelper(String dbUrl, String dbUserName, String dbPassword, String jdbcName) {
+		this.dbUrl = dbUrl;
+		this.dbUserName = dbUserName;
+		this.dbPassword = dbPassword;
+		this.jdbcName = jdbcName;
 	}
 
 	/**
-	 * @方法描述: 获取数据库连接
+	 * @方法描述: 获取数据源并加载相关配置
+	 * @return
+	 */
+	private synchronized DataSource getDataSource() {
+		if (null == dataSource) {
+			try {
+				BasicDataSource dbcpDataSource = new BasicDataSource();
+				dbcpDataSource.setUrl(dbUrl);
+				dbcpDataSource.setDriverClassName(jdbcName);
+				dbcpDataSource.setUsername(dbUserName);
+				dbcpDataSource.setPassword(dbPassword);
+				dbcpDataSource.setDefaultAutoCommit(true);
+				dbcpDataSource.setMaxActive(100);
+				dbcpDataSource.setMaxIdle(30);
+				dbcpDataSource.setMaxWait(500L);
+				dataSource = dbcpDataSource;
+			} catch (Exception ex) {
+				logger.info("dbcp数据源初始化失败:" + ex.getMessage(), ex);
+			}
+		}
+		return dataSource;
+	}
+
+	/**
+	 * @方法描述:获取数据源链接
 	 * @return
 	 * @throws SQLException
 	 */
-	public static Connection getConnection() throws SQLException {
-		return DriverManager.getConnection(dbUrl, dbUserName, dbPassword);
+	private synchronized Connection getConnection() throws SQLException {
+		if (null == conn) {
+			return getDataSource().getConnection();
+		}
+		return conn;
 	}
-
-	/*--------------------------私有方法 end-------------------------------*/
-	/*--------------------------共有方法 start-------------------------------*/
 
 	/**
 	 * @方法描述: 执行SQL
 	 * @param sqlList
 	 * @throws SQLException
 	 */
-	public static void executeSql(List<String> sqlList) throws SQLException {
+	private void executeSql(List<String> sqlList) throws SQLException {
 		conn = getConnection();
 		Statement st = (Statement) conn.createStatement();
 		for (String sql : sqlList) {
 			st.executeUpdate(sql);
 		}
-		closeAll(conn, null, null, null);
-	}
-
-	/**
-	 * 
-	 * @Title：initDataBase
-	 * @Description：根据已经存在SQL文件初始化数据库
-	 * @return：void 返回类型
-	 */
-	public static void initDataBase() {
-
-		// 从SQL文件中读取SQL语句，每行一条，末尾没有分号
-		List<String> sqlList = new ArrayList<String>();
-		FileInputStream in = null;
-		BufferedReader br = null;
-		try {
-			in = new FileInputStream(rootPath);
-			// 指定读取文件时以UTF-8的格式读取
-			br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-			String instring;
-			while ((instring = br.readLine()) != null) {
-				if (instring.length() != 0) {
-					String line = instring.trim();
-					sqlList.add(line);
-				}
-			}
-			executeSql(sqlList);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			IOUtils.closeQuietly(br);
-			IOUtils.closeQuietly(in);
-		}
+		closeAll(conn, null, st, null);
 	}
 
 	/**
@@ -129,7 +136,7 @@ public class DataTableHelper {
 	 * @param ps
 	 * @throws SQLException
 	 */
-	public static void closeAll(Connection conn, ResultSet rs, Statement st, PreparedStatement ps)
+	private void closeAll(Connection conn, ResultSet rs, Statement st, PreparedStatement ps)
 			throws SQLException {
 		if (rs != null) {
 			rs.close();
@@ -146,21 +153,106 @@ public class DataTableHelper {
 		}
 	}
 
+	/** ----------------------------------------------------- 私有方法 结束 */
+
+	public static synchronized DataTableHelper getInstance(String dbUrl, String dbUserName,
+			String dbPassword, String jdbcName) {
+		if (instance == null) {
+			instance = new DataTableHelper(dbUrl, dbUserName, dbPassword, jdbcName);
+		}
+		return instance;
+	}
+
 	/**
 	 * 
-	 * @方法描述:
-	 *        <ul>
-	 *        <li>列的类型和属性信息的对象</li>
-	 *        <li>ResultSetMetaData接口用于获取关于ResultSet对象中列的类型和属性信息的对象</li>
-	 *        </ul>
+	 * @方法描述: 获取连接
+	 * @return
+	 * @throws SQLException
+	 */
+	public QueryRunner getQueryRunner() throws SQLException {
+		return new QueryRunner(getDataSource());
+	}
+
+	/**
+	 * @方法描述: 得到查询记录的条数
+	 * @说明 使用ScalarHandler处理单行记录,只返回结果集第一行中的指定字段,如未指定字段,则返回第一个字段
+	 * @param sql
+	 *            必须为select count(*) from tableName的格式
+	 * @return
+	 */
+	public int getCount(QueryRunner runner, String sql) {
+		try {
+			return runner.query(sql, new ScalarHandler<Long>()).intValue();
+		} catch (SQLException sqlEx) {
+			logger.error("数据查询操作异常:", sqlEx);
+		}
+		return 0;
+	}
+
+	/**
+	 * @方法描述: 插入新数据
+	 * @param sql
+	 * @return
+	 */
+	public int insert(QueryRunner runner, String sql) {
+		try {
+			return runner.insert(sql, new ScalarHandler<Long>()).intValue();
+		} catch (SQLException sqlEx) {
+			logger.error("数据保存异常:", sqlEx);
+		}
+		return 0;
+	}
+
+	/**
+	 * @方法描述: 得到当前数据库下所有的表名
+	 * @return
+	 */
+	public List<String> getTableName() throws SQLException {
+		List<String> tableList = Lists.newArrayList();
+		metadata = getConnection().getMetaData();
+		ResultSet rs = metadata.getTables(null, null, null, new String[] { "TABLE" });
+		while (rs.next()) {
+			/** 表所属用户名: rs.getString(2) */
+			tableList.add(rs.getString(3));
+		}
+		return tableList;
+	}
+
+	/**
+	 * @方法描述: 数据库相关属性
+	 * @return
+	 */
+	public DataBaseInfo getDataBaseInfo() throws SQLException {
+		DataBaseInfo resultMap = new DataBaseInfo();
+		metadata = getConnection().getMetaData();
+		resultMap.setUserName(metadata.getUserName());
+		resultMap.setDataBaseUrl(metadata.getURL());
+		resultMap.setReadOnly(metadata.isReadOnly());
+		resultMap.setProductName(metadata.getDatabaseProductName());
+		resultMap.setVersion(metadata.getDatabaseProductName());
+		resultMap.setDriverName(metadata.getDriverName());
+		resultMap.setDriverVersion(metadata.getDriverVersion());
+
+		ResultSet rs = metadata.getTableTypes();
+		List<String> typeInfo = Lists.newArrayList();
+		while (rs.next()) {
+			typeInfo.add(rs.getString(1));
+		}
+		resultMap.setTableTypes(typeInfo);
+
+		return resultMap;
+	}
+
+	/**
+	 * @方法描述: ResultSetMetaData接口用于获取关于ResultSet对象中列的类型和属性信息的对象
 	 * @param tableName
 	 * @return
 	 * @throws SQLException
 	 */
-	public static List<ColumnInfo> getTableInfo(String tableName) throws SQLException {
+	public List<ColumnInfo> getTableInfo(String tableName) throws SQLException {
 		List<ColumnInfo> resList = null;
 		// 如果所要查询的表没有在数据库中表集合中，直接返回null
-		if (ListUtilHelper.indexOf(getTableNameByCon(), tableName) < 0) {
+		if (ListUtilHelper.indexOf(getTableName(), tableName) < 0) {
 			return null;
 		}
 		if (StringUtils.isNotBlank(tableName)) {
@@ -169,9 +261,8 @@ public class DataTableHelper {
 			PreparedStatement ps = null;
 			ResultSet rs = null;
 
-			conn = getConnection();
 			String sql = "select * from " + tableName;
-			ps = conn.prepareStatement(sql);
+			ps = getConnection().prepareStatement(sql);
 			rs = ps.executeQuery();
 			ResultSetMetaData rsme = rs.getMetaData();
 
@@ -196,61 +287,44 @@ public class DataTableHelper {
 					resList.add(info);
 				}
 			}
-			closeAll(conn, rs, null, ps);
 		}
 		return resList;
 	}
 
 	/**
+	 * @方法描述:
+	 *        <ul>
+	 *        <li>根据已经存在SQL文件初始化数据库</li>
+	 *        <li>从SQL文件中读取SQL语句，每行一条，末尾没有分号</li>
+	 *        </ul>
+	 * @param rootPath
 	 * 
-	 * @Title：getDataBaseInfo
-	 * @Description：数据库相关属性
-	 * @return
-	 * @throws SQLException
-	 * @return：DataBaseInfo 返回类型
 	 */
-	public static DataBaseInfo getDataBaseInfo() throws SQLException {
-		conn = getConnection();
-		DataBaseInfo resultMap = new DataBaseInfo();
-
-		DatabaseMetaData metadata = conn.getMetaData();
-
-		resultMap.setUserName(metadata.getUserName());
-		resultMap.setDataBaseUrl(metadata.getURL());
-		resultMap.setReadOnly(metadata.isReadOnly());
-		resultMap.setProductName(metadata.getDatabaseProductName());
-		resultMap.setVersion(metadata.getDatabaseProductName());
-		resultMap.setDriverName(metadata.getDriverName());
-		resultMap.setDriverVersion(metadata.getDriverVersion());
-
-		ResultSet rs = metadata.getTableTypes();
-		List<String> typeInfo = new ArrayList<String>();
-		while (rs.next()) {
-			typeInfo.add(rs.getString(1));
+	public void initDataBase(String rootPath) {
+		List<String> sqlList = new ArrayList<String>();
+		FileInputStream in = null;
+		BufferedReader br = null;
+		try {
+			in = new FileInputStream(rootPath);
+			// 指定读取文件时以UTF-8的格式读取
+			br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+			String instring;
+			while ((instring = br.readLine()) != null) {
+				if (instring.length() != 0) {
+					String line = instring.trim();
+					sqlList.add(line);
+				}
+			}
+			executeSql(sqlList);
+		} catch (Exception exp) {
+			logger.error("数据异常:", exp);
+		} finally {
+			IOUtils.closeQuietly(br);
+			IOUtils.closeQuietly(in);
 		}
-		resultMap.setTableTypes(typeInfo);
-
-		return resultMap;
 	}
 
-	/**
-	 * @方法描述: 得到当前数据库下所有的表名
-	 * @return
-	 * @throws SQLException
-	 */
-	public static List<String> getTableNameByCon() throws SQLException {
-		List<String> resultList = null;
-		resultList = new ArrayList<String>();
-		conn = getConnection();
-		DatabaseMetaData metadata = conn.getMetaData();
-		ResultSet rs = metadata.getTables(null, null, null, new String[] { "TABLE" });
-		while (rs.next()) {
-			/** 表所属用户名: rs.getString(2) */
-			resultList.add(rs.getString(3));
-		}
-		closeAll(conn, null, null, null);
+	public static void main(String[] args) throws SQLException {
 
-		return resultList;
 	}
-	/*--------------------------共有方法 end-------------------------------*/
 }
