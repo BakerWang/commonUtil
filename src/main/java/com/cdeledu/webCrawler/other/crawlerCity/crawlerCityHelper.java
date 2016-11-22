@@ -25,7 +25,7 @@ import com.cdeledu.webCrawler.crawler.type.UserAgentType;
  * @类描述: 利用网络爬虫端抓取行政区域数据
  * @创建者: 皇族灬战狼
  * @创建时间: 2016年8月16日 下午8:08:57
- * @版本: V1.2.1
+ * @版本: V1.2.3
  * @since: JDK 1.7
  */
 public class crawlerCityHelper {
@@ -338,7 +338,7 @@ public class crawlerCityHelper {
 	}
 
 	public static void main(String[] args) {
-		getProvinceInfo();
+		// getProvinceInfo();
 		// getCityInfo();
 		// getCountyInfo();
 		// getTownInfo();
