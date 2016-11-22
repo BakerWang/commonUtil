@@ -25,4 +25,7 @@
 
 	http://lbsyun.baidu.com/apiconsole/auth/privilege
 
+`认证开发者权益`
+
+	http://lbsyun.baidu.com/apiconsole/auth/privilege
 
