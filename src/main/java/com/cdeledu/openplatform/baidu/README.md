@@ -28,4 +28,5 @@
 `认证开发者权益`
 
 	http://lbsyun.baidu.com/apiconsole/auth/privilege
+![](http://note.youdao.com/yws/public/resource/060955882dc198520d7f4282ecbdba12/xmlnote/89A279AA44EB4233A512C09CA8DCF5E2/41244)
 
