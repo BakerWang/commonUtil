@@ -40,10 +40,13 @@ public class crawlerCityHelper {
 	private static QueryRunner runner = null;
 	private static DataTableHelper dataTableHelper = null;
 	/** SQL执行工具:执行SQL语句 */
-	private static String SQL = "INSERT INTO sys_date_cityInfo"
+	private static String SQL = "INSERT INTO sys_date_china_cityinfo"
 			+ "(areaName,areaCode,areaUrl,parentId,areaLevel,areaType)"
 			+ " VALUES ('%s', '%s','%s', %s, '%s','%s')";
-	private static String ISEXIST = "SELECT COUNT(1) FROM sys_date_cityinfo WHERE areaCode = '%s'";
+	private static String ISEXIST = "SELECT COUNT(1) FROM sys_date_china_cityinfo WHERE areaCode = '%s'";
+	private static String EACHSQL = "SELECT id,areaUrl FROM sys_date_china_cityinfo"
+			+ " WHERE areaLevel = '%s' and areaUrl !=''";
+
 	/** ----------------------------------------------------- Fields end */
 
 	static {
@@ -62,9 +65,11 @@ public class crawlerCityHelper {
 	 * @return
 	 */
 	private static String getProvinceCode(String val) {
+
 		if (val.indexOf(".") == -1)
 			return val;
-		return (String) val.substring(0, val.indexOf("."));
+		val = val.substring(0, val.indexOf(".")) + "000000";
+		return (String) val.substring(0, 6);
 	}
 
 	/**
@@ -221,12 +226,12 @@ public class crawlerCityHelper {
 		Connection conn = null;
 		Document document = null;
 		try {
-			conn = Jsoup.connect(url);//获取连接
+			conn = Jsoup.connect(url);// 获取连接
 			conn.header("Connection", "keep-alive");
-			conn.header("User-Agent", UserAgentType.PC_Firefox.getValue());//配置模拟浏览器
+			conn.header("User-Agent", UserAgentType.PC_Firefox.getValue());// 配置模拟浏览器
 			conn.method(Method.POST);
 			conn.timeout(10000);
-			document = conn.execute().parse();//获取响应
+			document = conn.execute().parse();// 获取响应
 			// 表示ip被拦截或者其他情况,反正没有获取document对象
 			if (null == document || "".equals(document.toString())) {
 				IpUtilHelper.setProxyIp(); // 换代理ip
@@ -255,7 +260,7 @@ public class crawlerCityHelper {
 				String code = getProvinceCode(ele02.attr("href"));// 省份代码
 				String name = ele02.text();// 省份名称
 				String url = ele02.absUrl("href");// 省份地址
-				String inserSql = String.format(SQL, name, code, url, "51240", 1, "");
+				String inserSql = String.format(SQL, name, code, url, "100000", 1, "");
 				if (!isExist(code)) { // 查找是否已存在,不存在则插入
 					try {
 						saveDocument(inserSql);
@@ -273,7 +278,7 @@ public class crawlerCityHelper {
 	 * @return
 	 */
 	public static void getCityInfo() {
-		String sql = "SELECT id,areaUrl FROM sys_date_cityinfo WHERE areaLevel = 1";
+		String sql = String.format(EACHSQL, 1);
 		List<Map<String, Object>> result = null;
 		try {
 			result = runner.query(sql, new MapListHandler());
@@ -292,7 +297,7 @@ public class crawlerCityHelper {
 	 * @return
 	 */
 	public static void getCountyInfo() {
-		String sql = "SELECT id,areaUrl FROM sys_date_cityinfo WHERE areaLevel = 2";
+		String sql = String.format(EACHSQL, 2);
 		List<Map<String, Object>> result = null;
 		try {
 			result = runner.query(sql, new MapListHandler());
@@ -309,7 +314,7 @@ public class crawlerCityHelper {
 	 * @return
 	 */
 	public static void getTownInfo() {
-		String sql = "SELECT id,areaUrl FROM sys_date_cityinfo WHERE areaLevel = 3";
+		String sql = String.format(EACHSQL, 3);
 		List<Map<String, Object>> result = null;
 		try {
 			result = runner.query(sql, new MapListHandler());
@@ -325,7 +330,7 @@ public class crawlerCityHelper {
 	 * @方法描述: 村级行政单位(村民委员会、居民委员会、类似村民委员会、类似居民委员)
 	 */
 	public static void getVillageInfo() {
-		String sql = "SELECT id,areaUrl FROM sys_date_cityinfo WHERE areaLevel = 4";
+		String sql = String.format(EACHSQL, 4);
 		List<Map<String, Object>> result = null;
 		try {
 			result = runner.query(sql, new MapListHandler());
@@ -337,8 +342,51 @@ public class crawlerCityHelper {
 		}
 	}
 
+	/**
+	 * @方法描述: 插入特别地区
+	 */
+	public static void getSpecialArea(){
+		// 台湾省
+		if(!isExist("710000")){
+			String inserSql = String.format(SQL, "台湾省", "710000", "", "100000", 1, "");
+			try {
+				saveDocument(inserSql);
+			} catch (Exception e) {
+				logger.error("插入特别地区【台湾省】出现异常:", e);
+			}
+		}
+		// 香港特别行政区
+		if(!isExist("810000")){
+			String inserSql = String.format(SQL, "香港特别行政区", "810000", "", "100000", 1, "");
+			try {
+				saveDocument(inserSql);
+			} catch (Exception e) {
+				logger.error("插入特别地区【香港特别行政区】出现异常:", e);
+			}
+		}
+		// 澳门特别行政区
+		if(!isExist("820000")){
+			String inserSql = String.format(SQL, "澳门特别行政区", "820000", "", "100000", 1, "");
+			try {
+				saveDocument(inserSql);
+			} catch (Exception e) {
+				logger.error("插入特别地区【澳门特别行政区】出现异常:", e);
+			}
+		}
+		// 钓鱼岛
+		if(!isExist("900000")){
+			String inserSql = String.format(SQL, "钓鱼岛", "900000", "", "100000", 1, "");
+			try {
+				saveDocument(inserSql);
+			} catch (Exception e) {
+				logger.error("插入特别地区【钓鱼岛】出现异常:", e);
+			}
+		}
+	}
+	
 	public static void main(String[] args) {
 		// getProvinceInfo();
+		// getSpecialArea();
 		// getCityInfo();
 		// getCountyInfo();
 		// getTownInfo();
