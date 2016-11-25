@@ -41,6 +41,11 @@ public class PinyinUtil {
 
 	/** -------------------------- 私有属性 end ------------------------------- */
 	/** -------------------------- 私有方法 start ------------------------------- */
+	/**
+	 * @方法描述: 去除多音字重复数据
+	 * @param chineseStr
+	 * @return
+	 */
 	private static List<Map<String, Integer>> discountTheChinese(String chineseStr) {
 		// 去除重复拼音后的拼音列表
 		List<Map<String, Integer>> resultMapList = new ArrayList<Map<String, Integer>>();
