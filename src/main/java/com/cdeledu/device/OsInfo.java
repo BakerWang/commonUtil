@@ -8,17 +8,10 @@ package com.cdeledu.device;
  * @since: JDK 1.7
  */
 public class OsInfo {
-	private final boolean IS_OS_LINUX = getOSMatches("Linux") || getOSMatches("LINUX");
-	private final boolean IS_OS_MAC = getOSMatches("Mac");
-	private final boolean IS_OS_MAC_OSX = getOSMatches("Mac OS X");
-	private final boolean IS_OS_WINDOWS = getOSMatches("Windows");
-	private final boolean IS_OS_WINDOWS_ME = getOSMatches("Windows", "4.9");
-	private final boolean IS_OS_WINDOWS_NT = getOSMatches("Windows NT");
-	private final boolean IS_OS_WINDOWS_XP = getOSMatches("Windows", "5.1");
 
 	/**
 	 * @方法:取得当前OS的名称
-	 * 				<p>
+	 *               <p>
 	 *               例如：<code>"Windows XP"</code>
 	 *               </p>
 	 * @创建人:独泪了无痕
@@ -30,7 +23,7 @@ public class OsInfo {
 
 	/**
 	 * @方法:取得当前OS的版本
-	 * 				<p>
+	 *               <p>
 	 *               例如：<code>"5.1"</code>
 	 *               </p>
 	 * @创建人:独泪了无痕
@@ -47,11 +40,8 @@ public class OsInfo {
 	 *            OS名称前缀
 	 * @return 如果匹配，则返回<code>true</code>
 	 */
-	private final boolean getOSMatches(String osNamePrefix) {
-		if (SystemUtil.OS_NAME == null) {
-			return false;
-		}
-		return SystemUtil.OS_NAME.startsWith(osNamePrefix);
+	private final static boolean getOSMatches(String osNamePrefix) {
+		return getName().startsWith(osNamePrefix);
 	}
 
 	/**
@@ -63,11 +53,12 @@ public class OsInfo {
 	 *            OS版本前缀
 	 * @return 如果匹配，则返回<code>true</code>
 	 */
-	private final boolean getOSMatches(String osNamePrefix, String osVersionPrefix) {
+	private final static boolean getOSMatches(String osNamePrefix, String osVersionPrefix) {
 		if ((SystemUtil.OS_NAME == null) || (SystemUtil.OS_VERSION == null)) {
 			return false;
 		}
-		return SystemUtil.OS_NAME.startsWith(osNamePrefix) && SystemUtil.OS_NAME.startsWith(osVersionPrefix);
+		return SystemUtil.OS_NAME.startsWith(osNamePrefix)
+				&& SystemUtil.OS_NAME.startsWith(osVersionPrefix);
 	}
 
 	/**
@@ -126,31 +117,27 @@ public class OsInfo {
 	/**
 	 * 判断当前OS的类型
 	 */
-	public final boolean isLinux() {
-		return IS_OS_LINUX;
+	public static final boolean isLinux() {
+		return getOSMatches("Linux") || getOSMatches("LINUX");
 	}
 
-	public final boolean isMac() {
-		return IS_OS_MAC;
+	public final static boolean isMac() {
+		return getOSMatches("Mac") || getOSMatches("os");
 	}
 
-	public final boolean isMacOsX() {
-		return IS_OS_MAC_OSX;
+	public final static boolean isWindows() {
+		return getOSMatches("Windows") || getOSMatches("windows");
 	}
 
-	public final boolean isWindows() {
-		return IS_OS_WINDOWS;
+	public final static boolean isWindowsME() {
+		return getOSMatches("Windows", "4.9");
 	}
 
-	public final boolean isWindowsME() {
-		return IS_OS_WINDOWS_ME;
+	public final static boolean isWindowsNT() {
+		return getOSMatches("Windows NT");
 	}
 
-	public final boolean isWindowsNT() {
-		return IS_OS_WINDOWS_NT;
-	}
-
-	public final boolean isWindowsXP() {
-		return IS_OS_WINDOWS_XP;
+	public final static boolean isWindowsXP() {
+		return getOSMatches("Windows", "5.1");
 	}
 }
