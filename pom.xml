@@ -345,18 +345,9 @@
 		<!-- 简单的Java库，用于将一个对象到另一个对象 (结束) -->
 
 		<!-- JSON 工具包 (开始) -->
-		<!--
-		<dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-mapper-asl</artifactId>
-			<version>1.8.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-core-asl</artifactId>
-			<version>1.8.5</version>
-		</dependency>
-		 -->
+		<!-- <dependency> <groupId>org.codehaus.jackson</groupId> <artifactId>jackson-mapper-asl</artifactId> 
+			<version>1.8.5</version> </dependency> <dependency> <groupId>org.codehaus.jackson</groupId> 
+			<artifactId>jackson-core-asl</artifactId> <version>1.8.5</version> </dependency> -->
 		<!-- json-lib是需要区分jdk版本的,pom.xml中的配置应加上<classifier>标签,如用jdk15. -->
 		<dependency>
 			<groupId>net.sf.json-lib</groupId>
@@ -630,8 +621,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-htmlunit-driver</artifactId>
-			<version>2.52.0</version>
+			<artifactId>selenium-server</artifactId>
+			<version>2.53.0</version>
 		</dependency>
 		<!-- 网络爬虫:页面分析工具 (结束) -->
 
@@ -699,7 +690,7 @@
 							<goals>
 								<goal>copy-dependencies</goal>
 							</goals>
-							<!-- 具体的配置 -->  
+							<!-- 具体的配置 -->
 							<configuration>
 								<!-- ${project.build.directory}为Maven内置变量，缺省为target -->
 								<!-- 把依赖的jar包拷到lib目录下 -->
@@ -782,7 +773,7 @@
 					<configuration>
 						<!-- war包名字 -->
 						<warName>${project.build.name}</warName>
-						<!-- 强制字符集编码   -->
+						<!-- 强制字符集编码 -->
 						<encoding></encoding>
 					</configuration>
 				</plugin>
