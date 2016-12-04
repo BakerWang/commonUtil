@@ -1,8 +1,17 @@
 package com.cdeledu.device;
 
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.cdeledu.application.log.level.StaticLog;
+import com.google.common.collect.Lists;
 
 /**
  * @类描述: Java的System类封装工具类
@@ -143,4 +152,52 @@ public class SystemUtil {
 	protected static void append(StringBuilder builder, String caption, String value) {
 		builder.append(caption).append(StringUtils.defaultString(value, "[n/a]")).append("\n");
 	}
+
+	/**
+	 * @方法描述: 获取当前所有的系统属性的名称
+	 */
+	public static List<Object> showKeys() {
+		Properties props = System.getProperties();
+		Enumeration<?> enu = props.propertyNames();
+		List<Object> resultList = Lists.newArrayList();
+		while (enu.hasMoreElements()) {
+			Object key = enu.nextElement();
+			resultList.add(key);
+		}
+		return resultList;
+	}
+
+	/**
+	 * @方法描述: 获取当前所有的系统属性的值
+	 */
+	public static List<Object> showValues() {
+		Properties props = System.getProperties();
+		Enumeration<Object> enu = props.elements();
+		List<Object> resultList = Lists.newArrayList();
+		while (enu.hasMoreElements()) {
+			Object value = enu.nextElement();
+			resultList.add(value);
+		}
+		return resultList;
+	}
+
+	/**
+	 * @方法描述: 获取当前所有的系统属性
+	 */
+	public static List<Map<Object, Object>> showKeysAndValues() {
+		Properties props = System.getProperties();
+		List<Map<Object, Object>> resulitList = Lists.newArrayList();
+		Iterator<Entry<Object, Object>> it = props.entrySet().iterator();
+		Map<Object, Object> paramMap = null;
+		while (it.hasNext()) {
+			Entry<Object, Object> entry = it.next();
+			paramMap = new HashMap<>();
+			Object key = entry.getKey();
+			Object value = entry.getValue();
+			paramMap.put(key, value);
+			resulitList.add(paramMap);
+		}
+		return resulitList;
+	}
+
 }
