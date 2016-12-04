@@ -8,5 +8,16 @@ package com.cdeledu.webCrawler.crawler.type;
  * @since: JDK 1.7
  */
 public enum CrawlType {
-	jsoup, urlconn, httpclient, htmlunit, htmlparse, selenium;
+	/** jsoup 是一款Java 的HTML解析器,可直接解析某个URL地址、HTML文本内容 */
+	jsoup,
+	/** */
+	urlconn,
+	/** */
+	httpclient,
+	/** */
+	htmlunit,
+	/** */
+	htmlparse,
+	/** */
+	selenium;
 }

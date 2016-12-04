@@ -6,8 +6,16 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
+
+import com.cdeledu.webCrawler.crawler.bean.CrawlParameter;
+import com.cdeledu.webCrawler.crawler.imp.CrawlHandler;
+import com.cdeledu.webCrawler.crawler.imp.HtmlUnitHandler;
+import com.cdeledu.webCrawler.crawler.imp.HttpClientHandler;
+import com.cdeledu.webCrawler.crawler.imp.JsoupHandler;
+import com.cdeledu.webCrawler.crawler.imp.SeleniumHandler;
+import com.cdeledu.webCrawler.crawler.imp.UrlConnHandler;
+import com.cdeledu.webCrawler.crawler.type.CrawlType;
 
 /**
  * @类描述: 数据抓取以及解析通用类
@@ -18,10 +26,57 @@ import org.jsoup.nodes.Document;
  */
 public class WebCrawlerHelper {
 	/** ----------------------------------------------------- Fields start */
+	private CrawlHandler crawlHandler;
+	private CrawlParameter crawlPara;
+
+	public WebCrawlerHelper() {
+		crawlPara = new CrawlParameter();
+		getInstance();
+	}
+
+	public WebCrawlerHelper(CrawlParameter crawlPara) {
+		this.crawlPara = crawlPara;
+		getInstance();
+	}
+
 	/** ----------------------------------------------------- Fields end */
 
 	/** ----------------------------------------------- [私有方法] */
+	private void getInstance() {
+		CrawlType type = crawlPara.getType();// 如果此处设置了参数 默认用htmlunit
+		
+		switch (type) {
+		case jsoup:
+			crawlHandler = new JsoupHandler();
+			break;
+		case urlconn:
+			crawlHandler = new UrlConnHandler();
+			break;
+		case httpclient:
+			crawlHandler = new HttpClientHandler();
+			break;
+		case htmlunit:
+			crawlHandler = new HtmlUnitHandler();
+			break;
+		case selenium:
+			crawlHandler = new SeleniumHandler();
+			break;
+		default:
+			crawlHandler = new HtmlUnitHandler();
+			break;
+		}
+	}
+
 	/** ----------------------------------------------- [私有方法] */
+	/**
+	 * @方法描述: 获取请求
+	 * @param url
+	 * @return
+	 */
+	public String getSource(String url) {
+		return crawlHandler.crawl(url, crawlPara);
+	}
+
 	/**
 	 * @方法描述: 保存文件
 	 * @param doc
@@ -47,26 +102,5 @@ public class WebCrawlerHelper {
 		IOUtils.closeQuietly(osw);
 		IOUtils.closeQuietly(fos);
 		return filePath;
-	}
-
-	/**
-	 * @方法描述: 去除结尾
-	 * @param target
-	 *            去除结尾的目标 若为空，则返回""
-	 * @param sign
-	 *            结尾标识符 若为空，则返回 target
-	 * @return
-	 */
-	public static String removeTheEnd(String target, String sign) {
-		if (StringUtils.isBlank(target)) {
-			return "";
-		}
-		if (StringUtils.isBlank(sign)) {
-			return target;
-		}
-		while (target.endsWith(sign)) {
-			target = target.substring(0, target.length() - 1);
-		}
-		return target;
 	}
 }
